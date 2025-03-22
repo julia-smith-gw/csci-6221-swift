@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		37A52C3A2D8E4E3A00DB847D /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 37A52C392D8E4E3600DB847D /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		37A52C1D2D8E4DC200DB847D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		37A52C072D8E4DC100DB847D /* Spotifyish.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spotifyish.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		37A52C1C2D8E4DC200DB847D /* SpotifyishTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpotifyishTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		37A52C262D8E4DC200DB847D /* SpotifyishUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpotifyishUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		37A52C392D8E4E3600DB847D /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +80,7 @@
 		37A52BFE2D8E4DC100DB847D = {
 			isa = PBXGroup;
 			children = (
+				37A52C392D8E4E3600DB847D /* .gitignore */,
 				37A52C092D8E4DC100DB847D /* Spotifyish */,
 				37A52C1F2D8E4DC200DB847D /* SpotifyishTests */,
 				37A52C292D8E4DC200DB847D /* SpotifyishUITests */,
@@ -106,6 +112,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				37A52C402D8E557200DB847D /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				37A52C092D8E4DC100DB847D /* Spotifyish */,
@@ -195,6 +202,9 @@
 			);
 			mainGroup = 37A52BFE2D8E4DC100DB847D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				37A52C3E2D8E51D800DB847D /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 37A52C082D8E4DC100DB847D /* Products */;
 			projectDirPath = "";
@@ -212,6 +222,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37A52C3A2D8E4E3A00DB847D /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -265,6 +276,10 @@
 			isa = PBXTargetDependency;
 			target = 37A52C062D8E4DC100DB847D /* Spotifyish */;
 			targetProxy = 37A52C272D8E4DC200DB847D /* PBXContainerItemProxy */;
+		};
+		37A52C402D8E557200DB847D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = 37A52C3F2D8E557200DB847D /* SwiftLintBuildToolPlugin */;
 		};
 /* End PBXTargetDependency section */
 
@@ -558,6 +573,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		37A52C3E2D8E51D800DB847D /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SimplyDanny/SwiftLintPlugins";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.58.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		37A52C3F2D8E557200DB847D /* SwiftLintBuildToolPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 37A52C3E2D8E51D800DB847D /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
+			productName = "plugin:SwiftLintBuildToolPlugin";
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 37A52BFF2D8E4DC100DB847D /* Project object */;
 }
