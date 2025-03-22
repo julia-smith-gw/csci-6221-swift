@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		37A52C3A2D8E4E3A00DB847D /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 37A52C392D8E4E3600DB847D /* .gitignore */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		37A52C1D2D8E4DC200DB847D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -31,7 +27,6 @@
 		37A52C072D8E4DC100DB847D /* Spotifyish.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spotifyish.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		37A52C1C2D8E4DC200DB847D /* SpotifyishTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpotifyishTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		37A52C262D8E4DC200DB847D /* SpotifyishUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpotifyishUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		37A52C392D8E4E3600DB847D /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -80,7 +75,6 @@
 		37A52BFE2D8E4DC100DB847D = {
 			isa = PBXGroup;
 			children = (
-				37A52C392D8E4E3600DB847D /* .gitignore */,
 				37A52C092D8E4DC100DB847D /* Spotifyish */,
 				37A52C1F2D8E4DC200DB847D /* SpotifyishTests */,
 				37A52C292D8E4DC200DB847D /* SpotifyishUITests */,
@@ -222,7 +216,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				37A52C3A2D8E4E3A00DB847D /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
