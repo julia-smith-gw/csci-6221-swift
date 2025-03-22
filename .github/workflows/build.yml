@@ -20,12 +20,12 @@ jobs:
   build:
     name: Build 
     runs-on: macos-latest
-    working-directory: ./Spotifyish
     steps:
       - name: Check-out code
         uses: actions/checkout@v3
 
       - name: Build with xcodebuild
+        working-directory: ./Spotifyish
         run: |
           xcodebuild clean build \
             -scheme "Spotifyish" \
@@ -37,12 +37,12 @@ jobs:
   test:
     name: Run Tests
     runs-on: macos-latest
-    working-directory: ./Spotifyish
     steps:
       - name: Check-out code
         uses: actions/checkout@v3
 
       - name: Run xcode tests
+        working-directory: ./Spotifyish
         run: |
           xcodebuild test \
             -scheme "Spotifyish" \
