@@ -1,9 +1,4 @@
-//
-//  LibraryController.swift
-//  Spotifyish
-//
-//  Created by Julia  Smith on 3/25/25.
-//
+// SHREEYA/JULIA
 import SwiftUI
 
 struct LibraryController: View {

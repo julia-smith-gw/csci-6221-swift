@@ -1,4 +1,4 @@
-// TO BE EDITED BY NGOC!
+// NGOC
 import SwiftUI
 
 struct LikedController: View {

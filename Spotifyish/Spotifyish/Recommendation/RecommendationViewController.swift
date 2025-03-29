@@ -1,4 +1,4 @@
-// TO BE EDITED BY SUMARIAH!
+// SUMARIAH
 
 import SwiftUI
 

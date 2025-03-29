@@ -20,25 +20,60 @@ struct ContentView: View {
 
   var body: some View {
     TabView {
-      HomeController()
-        .tabItem {
-          Label("Home", systemImage: "house.fill")
-        }
-
       LibraryController()
         .tabItem {
           Label("Library", systemImage: "books.vertical.fill")
-        }
-      
+      }
       LikedController().tabItem{
         Label("Liked", systemImage: "heart.fill")
       }
-      RecommendedViewController().tabItem{Label("Search", systemImage: "magnifyingglass.circle.fill")}
+      
+      RecommendedViewController()
+        .tabItem {
+          Label("Recommended", systemImage: "house.fill")
+      }
+      BrowseViewController().tabItem{Label("Browse", systemImage: "magnifyingglass.circle.fill")}
     }
+    //.safeAreaInset(edge: .bottom, content: MiniPlayer)
 
   }
 
 }
+
+//MINI PLAYER JULIA WORK IN PROGRESS
+//struct MusicInfo:View{
+//  @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
+//  var body: some View {
+//    HStack(spacing:0) {
+//      GeometryReader {
+//        let size = $0.size
+//        Image(audioPlayerViewModel.song!.imageName)
+//          .resizable()
+//          .aspectRatio(contentMode: .fill)
+//          .frame(width: size.width, height: size.height)
+//      }.frame(width: 45, height: 45)
+//      
+//   
+//    }
+//  }
+//}
+//
+//@ViewBuilder
+//func MiniPlayer() -> some View {
+//  ZStack {
+//    Rectangle()
+//      .fill(.ultraThickMaterial)
+//      .overlay{
+//        MusicInfo()
+//      }
+//  }.frame(height:80)
+//    .overlay(alignment: .bottom, content: {
+//      Rectangle().fill(.gray.opacity(0.1))
+//        .frame(height:1)
+//        .padding(.horizontal, 20).offset(y:-10)
+//    })
+//    .offset(y:-49)
+//}
 
 #Preview {
   ContentView().environment(
