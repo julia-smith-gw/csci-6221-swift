@@ -13,8 +13,16 @@ struct SpotifyishApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            if let _ = UserDefaults.standard.string(forKey: "signedInUsername") {
+               
+                ContentView()
+                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            } else {
+                
+                WelcomeViewControllerWrapper()
+                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            }
         }
     }
 }
+

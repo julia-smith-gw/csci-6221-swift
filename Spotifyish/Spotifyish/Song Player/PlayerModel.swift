@@ -49,6 +49,14 @@ class AudioPlayerViewModel: ObservableObject {
     }
   }
   
+  func clearSong() {
+    self.audioPlayer?.stop()
+    isPlaying = false
+    removePeriodicTimeObserver()
+    self.duration=0.0
+    self.currentTime=0.0
+  }
+  
   func changePlaylist(playlist:[Song]){
     self.playlist = playlist
   }

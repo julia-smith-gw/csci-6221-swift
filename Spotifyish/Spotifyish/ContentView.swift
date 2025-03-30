@@ -49,6 +49,11 @@ struct ContentView: View {
             Label("Recommended", systemImage: "house.fill")
         }
         BrowseViewController().tabItem{Label("Browse", systemImage: "magnifyingglass.circle.fill")}
+        
+        SettingsViewController()
+          .tabItem {
+            Label("Settings", systemImage: "gearshape.fill")
+          }
       }
       .safeAreaInset(edge: .bottom, content: {
         if (audioPlayerViewModel.song != nil) {
@@ -111,7 +116,6 @@ struct MusicInfo:View{
     }.padding(10)
   }
 }
-
 
 #Preview {
   ContentView().environment(
