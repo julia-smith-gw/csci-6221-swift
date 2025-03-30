@@ -9,56 +9,44 @@ import CoreData
 import SwiftUI
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-    
-    @FetchRequest(
-        sortDescriptors: [
-            NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)
-        ],
-        animation: .default)
-    private var items: FetchedResults<Item>
-    
-    var body: some View {
-        TabView {
-            VStack {
-                LibraryController()
-                Button("Log Out") {
-                    logout()
-                }
-                .foregroundColor(.red)
-                .padding()
-            }
-            .tabItem {
-                Label("Library", systemImage: "books.vertical.fill")
-            }
-            
-            LikedController()
-                .tabItem {
-                    Label("Liked", systemImage: "heart.fill")
-                }
-            
-            RecommendedViewController()
-                .tabItem {
-                    Label("Recommended", systemImage: "house.fill")
-                }
-            
-            BrowseViewController()
-                .tabItem {
-                    Label("Browse", systemImage: "magnifyingglass.circle.fill")
-                }
+  @Environment(\.managedObjectContext) private var viewContext
+
+  @FetchRequest(
+    sortDescriptors: [
+      NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)
+    ],
+    animation: .default)
+  private var items: FetchedResults<Item>
+
+  var body: some View {
+    TabView {
+      LibraryController()
+        .tabItem {
+          Label("Library", systemImage: "books.vertical.fill")
+        }
+
+      LikedController()
+        .tabItem {
+          Label("Liked", systemImage: "heart.fill")
+        }
+
+      RecommendedViewController()
+        .tabItem {
+          Label("Recommended", systemImage: "house.fill")
+        }
+
+      BrowseViewController()
+        .tabItem {
+          Label("Browse", systemImage: "magnifyingglass.circle.fill")
+        }
+
+      SettingsViewController()
+        .tabItem {
+          Label("Settings", systemImage: "gearshape.fill")
         }
     }
-    
-    func logout() {
-        UserDefaults.standard.removeObject(forKey: "signedInUsername")
-        
-        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            scene.windows.first?.rootViewController = UIHostingController(rootView: WelcomeViewControllerWrapper())
-            scene.windows.first?.makeKeyAndVisible()
-        }
-    }
+  }
 }
-            
 
 //MINI PLAYER JULIA WORK IN PROGRESS
 //struct MusicInfo:View{
@@ -72,8 +60,8 @@ struct ContentView: View {
 //          .aspectRatio(contentMode: .fill)
 //          .frame(width: size.width, height: size.height)
 //      }.frame(width: 45, height: 45)
-//      
-//   
+//
+//
 //    }
 //  }
 //}
