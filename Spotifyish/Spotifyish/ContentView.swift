@@ -32,7 +32,6 @@ struct ContentView: View {
   
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
   @StateObject private var globalScreenManager: GlobalScreenManager = GlobalScreenManager()
-  @State private var height: CGFloat=80
   var body: some View {
     NavigationStack {
       
@@ -60,21 +59,14 @@ struct ContentView: View {
                 MusicInfo()
               }
           }
-          .gesture(DragGesture()
-            .onChanged { value in
-              let newHeight =  height - value.translation.height
-              if (newHeight >= 80) {
-                height=newHeight;
-              }
-            }
-            .onEnded{value in if (value.translation.height < -25) {
+          .gesture(TapGesture(count: 1)
+            .onEnded{
               withAnimation {
                 globalScreenManager.showFullscreenPlayer=true
-                height=80
               }
-            }}
+            }
           )
-          .frame(height: height)
+          .frame(maxHeight: 80)
           .offset(y:-49)
         }
       }).navigationDestination(isPresented: $globalScreenManager.showFullscreenPlayer ) {

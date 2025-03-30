@@ -69,12 +69,6 @@ struct PlayerView: View {
             audioPlayerViewModel.changeSong(song: song)
           }
         }
-    }.gesture(DragGesture()
-      .onEnded{value in if (value.translation.height > 0) {
-        withAnimation {
-          globalScreenManager.showFullscreenPlayer = false
-        }
-      }}
-    )
+    }
   }
 }
