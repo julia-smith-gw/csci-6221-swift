@@ -23,21 +23,29 @@ struct ContentView: View {
       LibraryController()
         .tabItem {
           Label("Library", systemImage: "books.vertical.fill")
-      }
-      LikedController().tabItem{
-        Label("Liked", systemImage: "heart.fill")
-      }
-      
+        }
+
+      LikedController()
+        .tabItem {
+          Label("Liked", systemImage: "heart.fill")
+        }
+
       RecommendedViewController()
         .tabItem {
           Label("Recommended", systemImage: "house.fill")
-      }
-      BrowseViewController().tabItem{Label("Browse", systemImage: "magnifyingglass.circle.fill")}
+        }
+
+      BrowseViewController()
+        .tabItem {
+          Label("Browse", systemImage: "magnifyingglass.circle.fill")
+        }
+
+      SettingsViewController()
+        .tabItem {
+          Label("Settings", systemImage: "gearshape.fill")
+        }
     }
-    //.safeAreaInset(edge: .bottom, content: MiniPlayer)
-
   }
-
 }
 
 //MINI PLAYER JULIA WORK IN PROGRESS
@@ -52,8 +60,8 @@ struct ContentView: View {
 //          .aspectRatio(contentMode: .fill)
 //          .frame(width: size.width, height: size.height)
 //      }.frame(width: 45, height: 45)
-//      
-//   
+//
+//
 //    }
 //  }
 //}
