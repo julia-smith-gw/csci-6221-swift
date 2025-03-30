@@ -22,13 +22,6 @@ struct SongCard: View {
             .foregroundStyle(.secondary)
         }
         Spacer()
-        
-        NavigationLink {
-          PlayerView(song: song)
-        } label: {
-            
-        }
-
       
       }
       .padding(.bottom, 0)
