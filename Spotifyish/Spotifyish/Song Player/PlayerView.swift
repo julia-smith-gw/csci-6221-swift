@@ -9,27 +9,28 @@ let formatter = DateComponentsFormatter()
 
 struct PlayerView: View {
   var song: Song
+  var startNew: Bool = false
+  @EnvironmentObject var globalScreenManager: GlobalScreenManager
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
   
   var body: some View {
-     VStack (alignment:.center, spacing: 10) {
-        Image(audioPlayerViewModel.song?.imageName ?? "")
-          .resizable()
-          .frame(width: 200, height: 200)
-          .shadow(radius: 10)
-      }
-
+    VStack (alignment:.center, spacing: 10) {
+      Image(audioPlayerViewModel.song?.imageName ?? "")
+        .resizable()
+        .frame(width: 200, height: 200)
+        .shadow(radius: 10)
+      
       Text(audioPlayerViewModel.song?.name ?? "")
         .font(.title)
         .fontWeight(.bold)
-
+      
       Text(audioPlayerViewModel.song?.artistName ?? "")
         .font(.subheadline)
-
+      
       HStack (spacing: 20) {
         Button("Play last", systemImage: "backward.fill", action: audioPlayerViewModel.skipBackwards)
           .labelStyle(.iconOnly).imageScale(.large)
-
+        
         Button("Play or pause", systemImage: audioPlayerViewModel.isPlaying ? "pause.fill" : "play.fill", action:audioPlayerViewModel.playOrPause
         ).labelStyle(.iconOnly)
           .imageScale(.large)
@@ -47,15 +48,15 @@ struct PlayerView: View {
               audioPlayerViewModel.isScrubbing=true
             }
           })
-        Text(String(format: "%02d:%02d", ((Int)((audioPlayerViewModel.currentTime))) / 60, ((Int)((audioPlayerViewModel.currentTime))) % 60)).font(.caption)
-        Text("/")
-        Text(String(format: "%02d:%02d", ((Int)((audioPlayerViewModel.duration))) / 60, ((Int)((audioPlayerViewModel.duration))) % 60)).font(.caption)
+          Text(String(format: "%02d:%02d", ((Int)((audioPlayerViewModel.currentTime))) / 60, ((Int)((audioPlayerViewModel.currentTime))) % 60)).font(.caption)
+          Text("/")
+          Text(String(format: "%02d:%02d", ((Int)((audioPlayerViewModel.duration))) / 60, ((Int)((audioPlayerViewModel.duration))) % 60)).font(.caption)
           
         }.padding()
         
         HStack{
           Slider(value: $audioPlayerViewModel.volume, in: (0...1.0), step:0.05, onEditingChanged:
-          {
+                  {
             editing in if !editing {
               audioPlayerViewModel.volumeTo(newVolume: audioPlayerViewModel.volume)
             }
@@ -63,8 +64,17 @@ struct PlayerView: View {
           Image(systemName:"speaker.wave.3.fill")
         }.padding()
       }.padding()
-      .onAppear {
-        audioPlayerViewModel.changeSong(song: song)
-      }
+        .onAppear {
+          if (startNew) {
+            audioPlayerViewModel.changeSong(song: song)
+          }
+        }
+    }.gesture(DragGesture()
+      .onEnded{value in if (value.translation.height > 0) {
+        withAnimation {
+          globalScreenManager.showFullscreenPlayer = false
+        }
+      }}
+    )
   }
 }
