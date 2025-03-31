@@ -11,13 +11,6 @@ struct PlayerView: View {
     @ObservedObject var viewModel = SongsViewModel.shared
     @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
     @Binding var song: Song
-    //var isLiked: Bool
-    
-    /*init(song: Song) {
-        self.song = song
-        // Set the initial value of 'isLiked' from the existing song's liked property
-        isLiked = song.liked
-    }*/
     
     var body: some View {
         VStack (alignment:.center, spacing: 10) {
@@ -45,7 +38,7 @@ struct PlayerView: View {
                 .imageScale(.large)
             Button(action: {
                 song.liked.toggle()
-                //isLiked.toggle()
+                print("Current \(song.name) liked status: \(song.liked)")
             }) {
                 ZStack {
                     // Create the heart with a green border and transparent background

@@ -9,17 +9,17 @@ import SwiftUI
 
 // Make a global shared instance so all views can access it
 class SongsViewModel: ObservableObject {
-    @Published var songs: [Song]
+    @Published var allsongs: [Song]
     static let shared = SongsViewModel()
 
     init() {
-        self.songs = []
+        self.allsongs = []
         loadSongs()
     }
     
     private func loadSongs() {
-        self.songs = songs
-        print("Songs array initialized in ViewModel: \(self.songs)")    // ISSUE: songs array is empty - any reference to SongsViewModel.songs is an empty array
+        self.allsongs = songs
+        //print("Songs array initialized in ViewModel: \(self.allsongs)")
     }
 }
 /*
