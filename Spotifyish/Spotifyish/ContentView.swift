@@ -9,35 +9,40 @@ import CoreData
 import SwiftUI
 
 struct ContentView: View {
-  @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.managedObjectContext) private var viewContext
+    
+    @FetchRequest(
+        sortDescriptors: [
+            NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)
+        ],
+        animation: .default)
+    private var items: FetchedResults<Item>
+    @StateObject var viewModel = SongsViewModel()
+    //@State var songs: [Song] = songs
+    
+    /*init() {
+        _songs = State(initialValue: songs)
+    }*/
 
-  @FetchRequest(
-    sortDescriptors: [
-      NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)
-    ],
-    animation: .default)
-  private var items: FetchedResults<Item>
-
-  var body: some View {
-    TabView {
-      LibraryController()
-        .tabItem {
-          Label("Library", systemImage: "books.vertical.fill")
-      }
-      LikedController().tabItem{
-        Label("Liked", systemImage: "heart.fill")
-      }
-      
-      RecommendedViewController()
-        .tabItem {
-          Label("Recommended", systemImage: "house.fill")
-      }
-      BrowseViewController().tabItem{Label("Browse", systemImage: "magnifyingglass.circle.fill")}
+    var body: some View {
+        TabView {
+            LibraryController(viewModel: viewModel)
+                .tabItem {
+                    Label("Library", systemImage: "books.vertical.fill")
+                }
+            LikedController(viewModel: viewModel)
+                .tabItem{
+                    Label("Liked", systemImage: "heart.fill")
+                }
+            
+            RecommendedViewController()
+                .tabItem {
+                    Label("Recommended", systemImage: "house.fill")
+                }
+            BrowseViewController().tabItem{Label("Browse", systemImage: "magnifyingglass.circle.fill")}
+        }
+        //.safeAreaInset(edge: .bottom, content: MiniPlayer)
     }
-    //.safeAreaInset(edge: .bottom, content: MiniPlayer)
-
-  }
-
 }
 
 //MINI PLAYER JULIA WORK IN PROGRESS
@@ -52,8 +57,8 @@ struct ContentView: View {
 //          .aspectRatio(contentMode: .fill)
 //          .frame(width: size.width, height: size.height)
 //      }.frame(width: 45, height: 45)
-//      
-//   
+//
+//
 //    }
 //  }
 //}
@@ -76,6 +81,6 @@ struct ContentView: View {
 //}
 
 #Preview {
-  ContentView().environment(
-    \.managedObjectContext, PersistenceController.preview.container.viewContext)
+    ContentView().environment(
+        \.managedObjectContext, PersistenceController.preview.container.viewContext)
 }

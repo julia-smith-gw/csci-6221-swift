@@ -7,13 +7,13 @@
 import SwiftUI
 
 struct SongList: View {
-  let songs: [Song]
-
-  var body: some View {
-    NavigationStack {
-      List(songs, id: \.name) { song in
-        SongCard(song: song)
-      }
+    @Binding var songs: [Song]
+    
+    var body: some View {
+        NavigationStack {
+            List($songs, id: \.name) { $song in
+                SongCard(song: $song)
+            }
+        }
     }
-  }
 }

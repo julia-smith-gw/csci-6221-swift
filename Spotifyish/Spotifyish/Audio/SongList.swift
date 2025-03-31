@@ -5,13 +5,14 @@
 //  Created by Julia  Smith on 3/25/25.
 //
 
-let songs: [Song] = [
+var songs: [Song] = [
   Song(
     name: "Tequilla",
     Genre: "Country",
     artistName: "Dan + Shay",
     imageName: "cover5",
-    audioFileName: "Song5"),
+    audioFileName: "Song5",
+    liked: true),
   Song(
     name: "Stargazing",
     Genre: "Pop",
