@@ -45,7 +45,7 @@ struct PlayerView: View {
                 .imageScale(.large)
             Button(action: {
                 song.liked.toggle()
-                //isLiked.toggle()
+                print("Current \(song.name) liked status: \(song.liked)")
             }) {
                 ZStack {
                     // Create the heart with a green border and transparent background

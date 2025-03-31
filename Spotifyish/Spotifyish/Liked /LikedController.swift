@@ -3,8 +3,6 @@ import SwiftUI
 
 struct LikedController: View {
     @ObservedObject var viewModel: SongsViewModel
-    //@Binding var songs: [Song]
-    //var songs: [Song]
     @State var likedSongs: [Song] = []
 
     var body: some View {
@@ -12,9 +10,9 @@ struct LikedController: View {
             SongList(songs: $likedSongs)  // Display liked songs
                 .onAppear {
                     loadLikedSongs()  // Load liked songs when the view appears
-                    print("Songs array in LikedController: \(viewModel.songs)")
+                    //print("Songs array in LikedController: \(viewModel.allsongs)")
                 }
-                .onChange(of: viewModel.songs) { _ in
+                .onChange(of: viewModel.allsongs) { _ in
                     loadLikedSongs()
                 }
         }
