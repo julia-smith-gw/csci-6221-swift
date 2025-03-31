@@ -20,6 +20,6 @@ struct LikedController: View {
     }
 
     func loadLikedSongs() {
-        likedSongs = songs.filter { song in song.liked }
+        likedSongs = viewModel.allsongs.filter { song in song.liked }
     }
 }
