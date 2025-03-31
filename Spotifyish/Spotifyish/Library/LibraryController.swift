@@ -21,11 +21,3 @@ struct LibraryController: View {
   }
 
 }
-/*
-struct LibraryController: View {
-    @ObservedObject var viewModel: SongsViewModel
-
-    var body: some View {
-        SongList(songs: $viewModel.songs)  // Pass the binding to SongList
-    }
-}*/

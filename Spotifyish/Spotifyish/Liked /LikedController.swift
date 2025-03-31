@@ -15,11 +15,12 @@ struct LikedController: View {
                 .onChange(of: viewModel.allsongs) {
                     loadLikedSongs()
                     print("viewModel.allsongs change detected.")
+                    print($likedSongs)
                 }
         }
     }
 
     func loadLikedSongs() {
-        likedSongs = songs.filter { song in song.liked }
+        likedSongs = viewModel.allsongs.filter { song in song.liked }
     }
 }
