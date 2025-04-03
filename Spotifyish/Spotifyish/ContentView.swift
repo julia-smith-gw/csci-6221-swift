@@ -4,6 +4,9 @@
 //
 //  Created by Julia  Smith on 3/25/25.
 //
+/// Makes a new search request to MusicKit when the current search term changes.
+import SwiftUI
+import MusicKit
 
 //https://stackoverflow.com/questions/73488386/swiftui-animation-from-screen-bottom-not-working-properly
 //https://www.youtube.com/watch?v=vqPK8qFsoBg&t=145s
@@ -17,7 +20,9 @@ import SwiftUI
 
 @Observable
 class GlobalScreenManager: ObservableObject {
-    var showFullscreenPlayer: Bool = false
+  var showFullscreenPlayer: Bool = false
+  var showErrorAlert: Bool = false
+  var errorMsg: String = ""
 }
 
 struct ContentView: View {
@@ -32,14 +37,30 @@ struct ContentView: View {
   
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
   @StateObject private var globalScreenManager: GlobalScreenManager = GlobalScreenManager()
+  
+  
+  func requestUpdatedSearchResults(for searchTerm: String = "evanescence") {
+    Task {
+      do {
+        var searchRequest = MusicCatalogSearchRequest(term: searchTerm, types: [Album.self])
+        searchRequest.limit = 5
+        let searchResponse = try await searchRequest.response()
+        print(searchResponse)
+      } catch {
+        print("Search request failed with error: \(error).")
+      }
+    }
+  }
+  
+
+  
   var body: some View {
     NavigationStack {
-      
       TabView {
         LibraryController()
           .tabItem {
             Label("Library", systemImage: "books.vertical.fill")
-        }
+        }.environmentObject(globalScreenManager)
         LikedController().tabItem{
           Label("Liked", systemImage: "heart.fill")
         }
@@ -75,14 +96,27 @@ struct ContentView: View {
           .offset(y:-49)
         }
       }).navigationDestination(isPresented: $globalScreenManager.showFullscreenPlayer ) {
-        if audioPlayerViewModel.song != nil {
-          PlayerView(song: audioPlayerViewModel.song!, startNew: false)
-            .transition(.move(edge: .bottom))
-        }
+//        if audioPlayerViewModel.song != nil {
+//          PlayerView(song: audioPlayerViewModel.song!, startNew: false)
+//            .transition(.move(edge: .bottom))
+//        }
       }
+    }.task  {
+      do {
+        try await authenticateToAppleMusic()
+      } catch AppleMusicError.authenticationFailed(let reason){
+        globalScreenManager.showErrorAlert = true
+        globalScreenManager.errorMsg = reason
+      } catch {
+        globalScreenManager.showErrorAlert = true
+        globalScreenManager.errorMsg = error.localizedDescription
+      }
+    }.alert(isPresented: $globalScreenManager.showErrorAlert) {
+      Alert(title: Text("Error"), message: Text(globalScreenManager.errorMsg), dismissButton: .default(Text("OK")))
     }
   }
 }
+
 
 //MINI PLAYER JULIA WORK IN PROGRESS
 // source https://www.youtube.com/watch?v=_KohThDWl5Y
@@ -92,13 +126,12 @@ struct MusicInfo:View{
     HStack(spacing:0) {
       GeometryReader {
         let size = $0.size
-        Image(audioPlayerViewModel.song?.imageName ?? "")
-          .resizable()
+        AsyncImage(url: audioPlayerViewModel.song?.artwork?.url(width: Int(size.width), height: Int(size.height)))
           .aspectRatio(contentMode: .fill)
           .frame(width: size.width, height: size.height)
       }.frame(width: 45, height: 45)
       
-        Text(audioPlayerViewModel.song?.name ?? "")
+        Text(audioPlayerViewModel.song?.title ?? "")
           .fontWeight(.semibold)
           .lineLimit(1)
           .padding(.leading, 15)

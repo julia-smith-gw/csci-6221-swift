@@ -1,4 +1,5 @@
 {
+	"NSAppleMusicUsageDescription" = "This app requires Apple Music access in order to play music.";
 	UIAppFonts = (
 		"circular-std-4.ttf",
 	);

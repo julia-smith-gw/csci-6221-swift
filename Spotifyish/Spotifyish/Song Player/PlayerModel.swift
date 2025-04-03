@@ -1,6 +1,5 @@
 //Source:https://www.kodeco.com/books/swiftui-cookbook/v1//.0/chapters/1-create-an-audio-player-in-swiftui//
 
-//https://developer.apple.com/documentation/avfaudio/avaudioplayer
 
 //https://developer.apple.com/documentation/swift/managing-a-shared-resource-using-a-singleton
 
@@ -8,49 +7,52 @@
 
 //https://stackoverflow.com/questions/67256358/uislider-stuttering-when-updating-value
 
+//https://stackoverflow.com/questions/15094948/avplayer-fast-backward-forward-stream
+
+//https://stackoverflow.com/questions/44434586/achieve-smooth-video-scrubbing-with-avplayer
 import AVFoundation
+import MusicKit
+import SwiftUI
 
 class AudioPlayerViewModel: ObservableObject {
   static let shared = AudioPlayerViewModel()
   private var timer: Timer?
-  private var audioPlayer: AVAudioPlayer?
+  private var audioPlayer: AVPlayer = AVPlayer()
   private var timeObserver: Any?
-  var song: Song?
+  var song: MusicKit.Song?
   var playlist: [Song] = []
+  var songFile: AVPlayerItem?
 
   @Published var isPlaying = false
   @Published var volume : Float = 0.5
-  @Published var duration: TimeInterval=0.0
-  @Published var currentTime: TimeInterval=0.0
+  @Published var duration: Double = 0.0
+  @Published var currentTime: Double = 0.0
   @Published var isScrubbing: Bool=false
 
   init(){
     return;
   }
   
-  func changeSong(song:Song){
-    self.audioPlayer?.stop()
+  func changeSong(song:MusicKit.Song){
+    self.audioPlayer.pause()
     self.song = song
-    if let sound = Bundle.main.path(
-      forResource: self.song?.audioFileName, ofType: "mp3")
-    {
+    print ("SONG")
+    print(song)
       do {
-        self.audioPlayer = try AVAudioPlayer(
-          contentsOf: URL(fileURLWithPath: sound))
-        self.audioPlayer?.prepareToPlay()
-        self.duration = self.audioPlayer?.duration ?? -1
-        self.currentTime=0
+        if let url = song.url {
+          self.songFile = AVPlayerItem(
+            url: url
+          )
+        }
+        self.audioPlayer.replaceCurrentItem(with: self.songFile)
+        self.duration = self.audioPlayer.currentItem?.duration.seconds ?? CMTime().seconds
+        self.currentTime=self.audioPlayer.currentTime().seconds
         self.playOrPause()
-      } catch {
-        print("AVAudioPlayer could not be instantiated.")
       }
-    } else {
-      print("Audio file could not be found.")
     }
-  }
   
   func clearSong() {
-    self.audioPlayer?.stop()
+    self.audioPlayer.pause()
     isPlaying = false
     removePeriodicTimeObserver()
     self.duration=0.0
@@ -64,7 +66,7 @@ class AudioPlayerViewModel: ObservableObject {
   private func addPeriodicTimeObserver() {
     self.timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
       if (!self.isScrubbing) {
-        self.currentTime=self.audioPlayer!.currentTime
+        self.currentTime=self.audioPlayer.currentTime().seconds
       }
     }
   }
@@ -75,36 +77,55 @@ class AudioPlayerViewModel: ObservableObject {
   }
 
   func skipForwards() {
-    guard let player = audioPlayer else { return }
-    let newTime = player.currentTime + 10.0
-    player.currentTime = newTime > player.duration ? player.duration : newTime
+    guard let duration  = audioPlayer.currentItem?.duration else{
+          return
+      }
+      let playerCurrentTime = CMTimeGetSeconds(audioPlayer.currentTime())
+      let newTime = playerCurrentTime + 10
+
+      if newTime < CMTimeGetSeconds(duration) {
+
+        let time2: CMTime = CMTimeMake(value: Int64(newTime * 1000 as Float64), timescale:1000)
+          audioPlayer.seek(to: time2)
+      }
   }
 
   func skipBackwards() {
-    guard let player = audioPlayer else { return }
-    let newTime = player.currentTime - 10.0
-    player.currentTime = newTime < 0 ? 0 : newTime
+    let playerCurrentTime = CMTimeGetSeconds(audioPlayer.currentTime())
+      var newTime = playerCurrentTime - 10
+
+      if newTime < 0 {
+          newTime = 0
+      }
+    let time2: CMTime = CMTimeMake(value: Int64(newTime * 1000 as Float64), timescale:1000)
+      audioPlayer.seek(to: time2)
   }
 
-  func scrubTo(newTime: Double) {
-    guard let player = audioPlayer else { return }
-    player.currentTime = newTime
+  func scrubTo(newTime: CMTime) {
+//    var timeToSeek = player.currentItem?.asset.duration.seconds
+//    timeToSeek = timeToSeek * Double(slider.value)
+//    audioPlayer.seek(to: newTime, 1)
   }
 
   func volumeTo(newVolume: Float) {
-    guard let player = audioPlayer else { return }
-    player.volume=newVolume
+//    guard let player = audioPlayer else { return }
+//    player.volume=newVolume
   }
 
   func playOrPause() {
-    guard let player = audioPlayer else { return }
 
-    if player.isPlaying {
-      player.pause()
+    if ((audioPlayer.rate != 0) && (audioPlayer.error == nil)) {
+      audioPlayer.pause()
+      print("Pause...")
+      print(audioPlayer.currentItem?.asset)
+      print(audioPlayer.currentItem?.status)
       isPlaying = false
       removePeriodicTimeObserver()
     } else {
-      player.play()
+      print("Playing...")
+      print(audioPlayer.currentItem?.asset)
+      print(audioPlayer.currentItem?.status)
+      audioPlayer.play()
       isPlaying = true
       addPeriodicTimeObserver()
     }
