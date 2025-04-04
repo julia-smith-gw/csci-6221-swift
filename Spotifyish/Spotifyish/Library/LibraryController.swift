@@ -6,8 +6,7 @@ import SwiftUI
 struct LibraryController: View {
   var songs: [MusicKit.Song] = []
   @EnvironmentObject var globalScreenManager: GlobalScreenManager
-  @ObservedObject private var viewModel: SongListViewModel = .init(
-    newDataSourceFunction: fetchLibrary)
+  @EnvironmentObject var libraryViewModel: SongListViewModel
   @State private var songsLoading: Bool = false
 
   private func makeMessageView(_ message: String) -> some View {
@@ -15,13 +14,16 @@ struct LibraryController: View {
   }
 
   private var loadingView: some View {
-    ProgressView()
+    VStack{
+      ProgressView()
+      Text("Loading library...")
+    }
   }
 
   var body: some View {
-    if viewModel.loading {
+    if libraryViewModel.loading {
       loadingView
-    } else if viewModel.loaded && viewModel.songs.isEmpty {
+    } else if libraryViewModel.loaded && libraryViewModel.songs.isEmpty {
       makeMessageView("No songs found")
     } else {
       contentView
@@ -30,14 +32,16 @@ struct LibraryController: View {
 
   private var contentView: some View {
     VStack{
-      SongList(songs: viewModel.loaded ? viewModel.songs : [])
-      if (!viewModel.loading && viewModel.currentOffset == 0 && !viewModel.loaded)
+      SongList(songs: libraryViewModel.loaded ? libraryViewModel.songs : [])
+      if (!libraryViewModel.loading && !libraryViewModel.loaded)
           {
+        var _ = print("go")
+        var _ = print(libraryViewModel)
         loadingView
           .onAppear {
             Task {
               do {
-               try await viewModel.fetch()
+               try await libraryViewModel.fetch()
               } catch AppleMusicError.networkError(let reason) {
                 globalScreenManager.showErrorAlert = true
                 globalScreenManager.errorMsg = reason

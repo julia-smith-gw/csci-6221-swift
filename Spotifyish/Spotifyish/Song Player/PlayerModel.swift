@@ -16,40 +16,50 @@ import SwiftUI
 
 class AudioPlayerViewModel: ObservableObject {
   static let shared = AudioPlayerViewModel()
+  @EnvironmentObject var globalScreenManager: GlobalScreenManager
+  let audioPlayer = ApplicationMusicPlayer.shared
   private var timer: Timer?
-  private var audioPlayer: AVPlayer = AVPlayer()
   private var timeObserver: Any?
-  var song: MusicKit.Song?
+  var originalLibrarySong: MusicKit.Song?
+  @Published var song: MusicKit.Song?
   var playlist: [Song] = []
   var songFile: AVPlayerItem?
 
   @Published var isPlaying = false
   @Published var volume : Float = 0.5
-  @Published var duration: Double = 0.0
-  @Published var currentTime: Double = 0.0
+  @Published var duration: TimeInterval = 0.0
+  @Published var currentTime: TimeInterval = 0.0
   @Published var isScrubbing: Bool=false
 
   init(){
     return;
   }
   
-  func changeSong(song:MusicKit.Song){
-    self.audioPlayer.pause()
-    self.song = song
-    print ("SONG")
-    print(song)
-      do {
-        if let url = song.url {
-          self.songFile = AVPlayerItem(
-            url: url
-          )
-        }
-        self.audioPlayer.replaceCurrentItem(with: self.songFile)
-        self.duration = self.audioPlayer.currentItem?.duration.seconds ?? CMTime().seconds
-        self.currentTime=self.audioPlayer.currentTime().seconds
-        self.playOrPause()
-      }
+  func loadNewQueue(playlist:ApplicationMusicPlayer.Queue){
+    self.audioPlayer.queue = playlist
+  }
+  
+  func changeSong(song : MusicKit.Song) async {
+    self.originalLibrarySong=song
+    do {
+      let catalogSongData = try await fetchSongStreamingInfo(song: song)
+      self.audioPlayer.pause()
+      self.song = catalogSongData
+      self.audioPlayer.queue = [song]
+      self.duration = song.duration ?? 0.0
+      self.currentTime = 0.0
+      try await self.audioPlayer.prepareToPlay()
+      await self.playOrPause()
+    } catch AppleMusicError.networkError(let reason){
+      print(reason)
+//      globalScreenManager.showErrorAlert = true
+//      globalScreenManager.errorMsg = reason
+    } catch {
+      print(error.localizedDescription)
+//      globalScreenManager.showErrorAlert = true
+//      globalScreenManager.errorMsg = error.localizedDescription
     }
+  }
   
   func clearSong() {
     self.audioPlayer.pause()
@@ -59,14 +69,10 @@ class AudioPlayerViewModel: ObservableObject {
     self.currentTime=0.0
   }
   
-  func changePlaylist(playlist:[Song]){
-    self.playlist = playlist
-  }
-
   private func addPeriodicTimeObserver() {
     self.timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
       if (!self.isScrubbing) {
-        self.currentTime=self.audioPlayer.currentTime().seconds
+        self.currentTime=self.audioPlayer.playbackTime
       }
     }
   }
@@ -77,31 +83,31 @@ class AudioPlayerViewModel: ObservableObject {
   }
 
   func skipForwards() {
-    guard let duration  = audioPlayer.currentItem?.duration else{
-          return
-      }
-      let playerCurrentTime = CMTimeGetSeconds(audioPlayer.currentTime())
-      let newTime = playerCurrentTime + 10
-
-      if newTime < CMTimeGetSeconds(duration) {
-
-        let time2: CMTime = CMTimeMake(value: Int64(newTime * 1000 as Float64), timescale:1000)
-          audioPlayer.seek(to: time2)
-      }
+//    guard let duration  = audioPlayer.currentItem?.duration else{
+//          return
+//      }
+//      let playerCurrentTime = CMTimeGetSeconds(audioPlayer.currentTime())
+//      let newTime = playerCurrentTime + 10
+//
+//      if newTime < CMTimeGetSeconds(duration) {
+//
+//        let time2: CMTime = CMTimeMake(value: Int64(newTime * 1000 as Float64), timescale:1000)
+//          audioPlayer.seek(to: time2)
+//      }
   }
 
   func skipBackwards() {
-    let playerCurrentTime = CMTimeGetSeconds(audioPlayer.currentTime())
-      var newTime = playerCurrentTime - 10
-
-      if newTime < 0 {
-          newTime = 0
-      }
-    let time2: CMTime = CMTimeMake(value: Int64(newTime * 1000 as Float64), timescale:1000)
-      audioPlayer.seek(to: time2)
+//    let playerCurrentTime = CMTimeGetSeconds(audioPlayer.currentTime())
+//      var newTime = playerCurrentTime - 10
+//
+//      if newTime < 0 {
+//          newTime = 0
+//      }
+//    let time2: CMTime = CMTimeMake(value: Int64(newTime * 1000 as Float64), timescale:1000)
+//      audioPlayer.seek(to: time2)
   }
 
-  func scrubTo(newTime: CMTime) {
+  func scrubTo(newTime: TimeInterval) {
 //    var timeToSeek = player.currentItem?.asset.duration.seconds
 //    timeToSeek = timeToSeek * Double(slider.value)
 //    audioPlayer.seek(to: newTime, 1)
@@ -112,22 +118,20 @@ class AudioPlayerViewModel: ObservableObject {
 //    player.volume=newVolume
   }
 
-  func playOrPause() {
+  func playOrPause() async {
 
-    if ((audioPlayer.rate != 0) && (audioPlayer.error == nil)) {
-      audioPlayer.pause()
-      print("Pause...")
-      print(audioPlayer.currentItem?.asset)
-      print(audioPlayer.currentItem?.status)
+    if (self.audioPlayer.state.playbackStatus == .playing) {
+      self.audioPlayer.pause()
       isPlaying = false
       removePeriodicTimeObserver()
     } else {
-      print("Playing...")
-      print(audioPlayer.currentItem?.asset)
-      print(audioPlayer.currentItem?.status)
-      audioPlayer.play()
-      isPlaying = true
-      addPeriodicTimeObserver()
+      do {
+        try await self.audioPlayer.play()
+        isPlaying = true
+        addPeriodicTimeObserver()
+      } catch {
+        print("error playing  \(error)")
+      }
     }
   }
 }

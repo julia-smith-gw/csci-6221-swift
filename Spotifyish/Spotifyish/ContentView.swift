@@ -20,6 +20,7 @@ import SwiftUI
 
 @Observable
 class GlobalScreenManager: ObservableObject {
+  var authorized: Bool = false
   var showFullscreenPlayer: Bool = false
   var showErrorAlert: Bool = false
   var errorMsg: String = ""
@@ -37,77 +38,73 @@ struct ContentView: View {
   
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
   @StateObject private var globalScreenManager: GlobalScreenManager = GlobalScreenManager()
-  
-  
-  func requestUpdatedSearchResults(for searchTerm: String = "evanescence") {
-    Task {
-      do {
-        var searchRequest = MusicCatalogSearchRequest(term: searchTerm, types: [Album.self])
-        searchRequest.limit = 5
-        let searchResponse = try await searchRequest.response()
-        print(searchResponse)
-      } catch {
-        print("Search request failed with error: \(error).")
-      }
-    }
-  }
-  
-
+  @ObservedObject var libraryViewModel: SongListViewModel = .init(
+    newDataSourceFunction: fetchLibrary)
   
   var body: some View {
     NavigationStack {
-      TabView {
-        LibraryController()
-          .tabItem {
-            Label("Library", systemImage: "books.vertical.fill")
-        }.environmentObject(globalScreenManager)
-        LikedController().tabItem{
-          Label("Liked", systemImage: "heart.fill")
-        }
-        
-        RecommendedViewController()
-          .tabItem {
-            Label("Recommended", systemImage: "house.fill")
-        }
-        BrowseViewController().tabItem{Label("Browse", systemImage: "magnifyingglass.circle.fill")}
-        
-        SettingsViewController()
-          .tabItem {
-            Label("Settings", systemImage: "gearshape.fill")
+      if (!globalScreenManager.authorized) {
+        ProgressView()
+        Text("Fetching authorization...")
+      } else if (globalScreenManager.showErrorAlert && !globalScreenManager.authorized) {
+        Text("Authorization to Apple Music failed. Please exit the app and try again later.")
+      } else {
+        TabView {
+          LibraryController()
+            .tabItem {
+              Label("Library", systemImage: "books.vertical.fill")
+          }.environmentObject(libraryViewModel)
+          LikedController().tabItem{
+            Label("Liked", systemImage: "heart.fill")
           }
-      }
-      .safeAreaInset(edge: .bottom, content: {
-        if (audioPlayerViewModel.song != nil) {
-          ZStack {
-            Rectangle()
-              .fill(.ultraThickMaterial)
-              .overlay{
-                MusicInfo()
-              }
+          
+          RecommendedViewController()
+            .tabItem {
+              Label("Recommended", systemImage: "house.fill")
           }
-          .gesture(TapGesture(count: 1)
-            .onEnded{
-              withAnimation {
-                globalScreenManager.showFullscreenPlayer=true
-              }
+          BrowseViewController().tabItem{Label("Browse", systemImage: "magnifyingglass.circle.fill")}
+          
+          SettingsViewController()
+            .tabItem {
+              Label("Settings", systemImage: "gearshape.fill")
             }
-          )
-          .frame(maxHeight: 80)
-          .offset(y:-49)
+        }.environmentObject(globalScreenManager)
+        .safeAreaInset(edge: .bottom, content: {
+          if (audioPlayerViewModel.song != nil) {
+            ZStack {
+              Rectangle()
+                .fill(.ultraThickMaterial)
+                .overlay{
+                  MusicInfo()
+                }
+            }
+            .gesture(TapGesture(count: 1)
+              .onEnded{
+                withAnimation {
+                  globalScreenManager.showFullscreenPlayer=true
+                }
+              }
+            )
+            .frame(maxHeight: 80)
+            .offset(y:-49)
+          }
+        }).navigationDestination(isPresented: $globalScreenManager.showFullscreenPlayer ) {
+          if audioPlayerViewModel.song != nil {
+            PlayerView(song: audioPlayerViewModel.song!, startNew: false)
+              .transition(.move(edge: .bottom))
+          }
         }
-      }).navigationDestination(isPresented: $globalScreenManager.showFullscreenPlayer ) {
-//        if audioPlayerViewModel.song != nil {
-//          PlayerView(song: audioPlayerViewModel.song!, startNew: false)
-//            .transition(.move(edge: .bottom))
-//        }
       }
     }.task  {
       do {
         try await authenticateToAppleMusic()
+        globalScreenManager.authorized = true
       } catch AppleMusicError.authenticationFailed(let reason){
         globalScreenManager.showErrorAlert = true
         globalScreenManager.errorMsg = reason
+        globalScreenManager.authorized = false
       } catch {
+        globalScreenManager.authorized = false
         globalScreenManager.showErrorAlert = true
         globalScreenManager.errorMsg = error.localizedDescription
       }
@@ -123,30 +120,39 @@ struct ContentView: View {
 struct MusicInfo:View{
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
   var body: some View {
-    HStack(spacing:0) {
-      GeometryReader {
-        let size = $0.size
-        AsyncImage(url: audioPlayerViewModel.song?.artwork?.url(width: Int(size.width), height: Int(size.height)))
+    ZStack{
+      HStack(spacing:0) {
+        AsyncImage(url: audioPlayerViewModel.song?.artwork?.url(width: 80, height: 80))
+          .frame(width: 80, height: 80)
           .aspectRatio(contentMode: .fill)
-          .frame(width: size.width, height: size.height)
-      }.frame(width: 45, height: 45)
-      
-        Text(audioPlayerViewModel.song?.title ?? "")
-          .fontWeight(.semibold)
-          .lineLimit(1)
-          .padding(.leading, 15)
-        
-        HStack (spacing: 5) {
-          Button("Play last", systemImage: "backward.fill", action: audioPlayerViewModel.skipBackwards)
-            .labelStyle(.iconOnly)
 
-          Button("Play or pause", systemImage: audioPlayerViewModel.isPlaying ? "pause.fill" : "play.fill", action:audioPlayerViewModel.playOrPause
-          ).labelStyle(.iconOnly)
-     
-          Button("Play next", systemImage: "forward.fill", action: audioPlayerViewModel.skipForwards).labelStyle(.iconOnly)
-        }.padding(5)
-      
-    }.padding(10)
+          Spacer()
+          Text(audioPlayerViewModel.song?.title ?? "")
+            .fontWeight(.semibold)
+            .lineLimit(1)
+            .padding(.leading, 15)
+          
+          HStack (spacing: 10) {
+            Button("Play last", systemImage: "backward.fill", action: audioPlayerViewModel.skipBackwards)
+              .labelStyle(.iconOnly)
+              .imageScale(.large)
+            
+            
+            AsyncButton(
+               systemImageName: audioPlayerViewModel.isPlaying ? "pause.fill" : "play.fill",
+               action: audioPlayerViewModel.playOrPause
+           )     .imageScale(.large)
+
+  //          Button("Play or pause", systemImage: audioPlayerViewModel.isPlaying ? "pause.fill" : "play.fill", action:audioPlayerViewModel.playOrPause
+  //          ).labelStyle(.iconOnly)
+       
+            Button("Play next", systemImage: "forward.fill", action: audioPlayerViewModel.skipForwards).labelStyle(.iconOnly)
+          }.padding(15)
+          .imageScale(.large)
+        
+      }.padding(10)
+    }
+
   }
 }
 

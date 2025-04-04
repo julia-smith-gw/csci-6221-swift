@@ -30,16 +30,12 @@ class SongListViewModel : ObservableObject  {
         nextBatchLoading=true
       }
       loading = true
-//      call.limit = 100
-//      call.offset=currentOffset
       let result: MusicLibraryResponse<MusicKit.Song> = try await dataSourceCall(call)
       songs += result.items.uniqued(on: \.id)
-//      currentOffset+=100
       nextBatchLoading=false
       hasNextBatch = result.items.hasNextBatch
       loading=false
       loaded=true
-     // print(result.items)
       return result.items;
     }
   }
