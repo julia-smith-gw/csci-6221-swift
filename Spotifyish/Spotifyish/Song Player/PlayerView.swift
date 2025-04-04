@@ -8,17 +8,18 @@ import Foundation
 let formatter = DateComponentsFormatter()
 
 struct PlayerView: View {
+    @EnvironmentObject var globalScreenManager: GlobalScreenManager
     @ObservedObject var viewModel = SongsViewModel.shared
     @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
     @Binding var song: Song
-    
+    var startNew: Bool = false
+
     var body: some View {
         VStack (alignment:.center, spacing: 10) {
             Image(audioPlayerViewModel.song?.imageName ?? "")
                 .resizable()
                 .frame(width: 200, height: 200)
                 .shadow(radius: 10)
-        }
         
         Text(audioPlayerViewModel.song?.name ?? "")
             .font(.title)
@@ -75,7 +76,8 @@ struct PlayerView: View {
                 })
                 Text(String(format: "%02d:%02d", ((Int)((audioPlayerViewModel.currentTime))) / 60, ((Int)((audioPlayerViewModel.currentTime))) % 60)).font(.caption)
                 Text("/")
-                Text(String(format: "%02d:%02d", ((Int)((audioPlayerViewModel.duration))) / 60, ((Int)((audioPlayerViewModel.duration))) % 60)).font(.caption)
+                Text(String(format: "%02d:%02d", ((Int)((audioPlayerViewModel.duration))) / 60, 
+                    ((Int)((audioPlayerViewModel.duration))) % 60)).font(.caption)
                 
             }.padding()
             
@@ -90,7 +92,10 @@ struct PlayerView: View {
             }.padding()
         }.padding()
             .onAppear {
-                audioPlayerViewModel.changeSong(song: song)
+                if (startNew) {
+                    audioPlayerViewModel.changeSong(song: song)
+                }
             }
     }
+  }
 }

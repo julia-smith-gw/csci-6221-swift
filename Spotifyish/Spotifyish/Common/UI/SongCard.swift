@@ -32,6 +32,6 @@ struct SongCard: View {
             
         }
         .padding(.bottom, 0)
-        
+
     }
 }

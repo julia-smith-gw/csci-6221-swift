@@ -30,7 +30,8 @@ var songs: [Song] = [
     Genre: "Pop",
     artistName: "Pharell Williams",
     imageName: "cover9",
-    audioFileName: "Song9"),
+    audioFileName: "Song9",
+    liked: true),
   Song(
     name: "Go Your Own Way",
     Genre: "Rock",
@@ -42,7 +43,8 @@ var songs: [Song] = [
     Genre: "Pop",
     artistName: "Taylor Swift",
     imageName: "cover11",
-    audioFileName: "Song11"),
+    audioFileName: "Song11",
+    liked: true),
   Song(
     name: "Lil Boo Thang",
     Genre: "Pop",
