@@ -8,23 +8,30 @@
 import SwiftUI
 
 struct SongCard: View {
-  let song: Song
-  var body: some View {
-      HStack {
-        Image(song.imageName)
-          .resizable()
-          .clipShape(RoundedRectangle(cornerRadius: 8))
-          .frame(width: 50, height: 50)
-          .foregroundStyle(.secondary)
-        VStack(alignment: .leading, spacing: 2) {
-          Text(self.song.name).font(.headline.bold())
-          Text(self.song.artistName).font(.footnote)
-            .foregroundStyle(.secondary)
+    @Binding var song: Song
+    var body: some View {
+        HStack {
+            Image(song.imageName)
+                .resizable()
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .frame(width: 50, height: 50)
+                .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(self.song.name).font(.headline.bold())
+                Text(self.song.artistName).font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            
+            NavigationLink {
+                PlayerView(song: $song)
+            } label: {
+                
+            }
+            
+            
         }
-        Spacer()
-      
-      }
-      .padding(.bottom, 0)
-   
-  }
+        .padding(.bottom, 0)
+
+    }
 }

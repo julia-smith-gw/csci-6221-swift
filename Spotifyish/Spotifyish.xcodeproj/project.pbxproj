@@ -29,22 +29,9 @@
 		375A3CC42D93778A002D05FC /* SpotifyishUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpotifyishUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		8488967D2D98BF7E00FFEF36 /* Exceptions for "Spotifyish" folder in "Spotifyish" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 375A3CA42D937789002D05FC /* Spotifyish */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		375A3CA72D937789002D05FC /* Spotifyish */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				8488967D2D98BF7E00FFEF36 /* Exceptions for "Spotifyish" folder in "Spotifyish" target */,
-			);
 			path = Spotifyish;
 			sourceTree = "<group>";
 		};

@@ -5,13 +5,14 @@
 //  Created by Julia  Smith on 3/25/25.
 //
 
-let songs: [Song] = [
+var songs: [Song] = [
   Song(
     name: "Tequilla",
     Genre: "Country",
     artistName: "Dan + Shay",
     imageName: "cover5",
-    audioFileName: "Song5"),
+    audioFileName: "Song5",
+    liked: true),
   Song(
     name: "Stargazing",
     Genre: "Pop",
@@ -29,7 +30,8 @@ let songs: [Song] = [
     Genre: "Pop",
     artistName: "Pharell Williams",
     imageName: "cover9",
-    audioFileName: "Song9"),
+    audioFileName: "Song9",
+    liked: true),
   Song(
     name: "Go Your Own Way",
     Genre: "Rock",
@@ -41,7 +43,8 @@ let songs: [Song] = [
     Genre: "Pop",
     artistName: "Taylor Swift",
     imageName: "cover11",
-    audioFileName: "Song11"),
+    audioFileName: "Song11",
+    liked: true),
   Song(
     name: "Lil Boo Thang",
     Genre: "Pop",

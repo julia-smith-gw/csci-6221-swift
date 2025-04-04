@@ -21,81 +21,90 @@ class GlobalScreenManager: ObservableObject {
 }
 
 struct ContentView: View {
-  @Environment(\.managedObjectContext) private var viewContext
-
-  @FetchRequest(
-    sortDescriptors: [
-      NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)
-    ],
-    animation: .default)
-  private var items: FetchedResults<Item>
-  
-  @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
-  @StateObject private var globalScreenManager: GlobalScreenManager = GlobalScreenManager()
-  var body: some View {
-    NavigationStack {
-      
-      TabView {
-        LibraryController()
-          .tabItem {
-            Label("Library", systemImage: "books.vertical.fill")
-        }
-        LikedController().tabItem{
-          Label("Liked", systemImage: "heart.fill")
-        }
-        
-        RecommendedViewController()
-          .tabItem {
-            Label("Recommended", systemImage: "house.fill")
-        }
-        BrowseViewController().tabItem{Label("Browse", systemImage: "magnifyingglass.circle.fill")}
-        
-        SettingsViewController()
-          .tabItem {
-            Label("Settings", systemImage: "gearshape.fill")
-          }
-      }
-      .safeAreaInset(edge: .bottom, content: {
-        if (audioPlayerViewModel.song != nil) {
-          ZStack {
-            Rectangle()
-              .fill(.ultraThickMaterial)
-              .overlay{
-                MusicInfo()
-              }
-          }
-          .gesture(TapGesture(count: 1)
-            .onEnded{
-              withAnimation {
-                globalScreenManager.showFullscreenPlayer=true
-              }
+    @Environment(\.managedObjectContext) private var viewContext
+    
+    @FetchRequest(
+        sortDescriptors: [
+            NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)
+        ],
+        animation: .default)
+    
+    private var items: FetchedResults<Item>
+    @StateObject var viewModel = SongsViewModel()
+    @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
+    @StateObject private var globalScreenManager: GlobalScreenManager = GlobalScreenManager()
+    
+    var body: some View {
+        NavigationStack {
+            
+            TabView {
+                LibraryController(viewModel: viewModel)
+                    .tabItem {
+                        Label("Library", systemImage: "books.vertical.fill")
+                    }
+                LikedController(viewModel: viewModel).tabItem{
+                    Label("Liked", systemImage: "heart.fill")
+                }
+                
+                RecommendedViewController()
+                    .tabItem {
+                        Label("Recommended", systemImage: "house.fill")
+                    }
+                BrowseViewController().tabItem{Label("Browse", systemImage: "magnifyingglass.circle.fill")}
+                
+                SettingsViewController()
+                    .tabItem {
+                        Label("Settings", systemImage: "gearshape.fill")
+                    }
             }
-          )
-          .frame(maxHeight: 80)
-          .offset(y:-49)
+            .safeAreaInset(edge: .bottom, content: {
+                if (audioPlayerViewModel.song != nil) {
+                    ZStack {
+                        Rectangle()
+                            .fill(.ultraThickMaterial)
+                            .overlay{
+                                MusicInfo()
+                            }
+                    }
+                    .gesture(TapGesture(count: 1)
+                        .onEnded{
+                            withAnimation {
+                                globalScreenManager.showFullscreenPlayer=true
+                            }
+                        }
+                    )
+                    .frame(maxHeight: 80)
+                    .offset(y:-49)
+                }
+            }).navigationDestination(isPresented: $globalScreenManager.showFullscreenPlayer ) {
+                if let currentSong = audioPlayerViewModel.song {
+                    PlayerView(song: Binding(
+                        get: { currentSong },
+                        set: { audioPlayerViewModel.song = $0 }
+                    ), startNew: false)
+                    .transition(.move(edge: .bottom))
+                }
+                /*if audioPlayerViewModel.song != nil {
+                    PlayerView(song: .constant(audioPlayerViewModel.song), startNew: false)
+                        .transition(.move(edge: .bottom))
+                }*/
+            }
         }
-      }).navigationDestination(isPresented: $globalScreenManager.showFullscreenPlayer ) {
-        if audioPlayerViewModel.song != nil {
-          PlayerView(song: audioPlayerViewModel.song!, startNew: false)
-            .transition(.move(edge: .bottom))
-        }
-      }
     }
-  }
 }
 
 //MINI PLAYER JULIA WORK IN PROGRESS
 // source https://www.youtube.com/watch?v=_KohThDWl5Y
-struct MusicInfo:View{
+struct MusicInfo:View {
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
   var body: some View {
     HStack(spacing:0) {
       GeometryReader {
         let size = $0.size
         Image(audioPlayerViewModel.song?.imageName ?? "")
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: size.width, height: size.height)
+              .resizable()
+              .aspectRatio(contentMode: .fill)
+              .frame(width: size.width, height: size.height)
       }.frame(width: 45, height: 45)
       
         Text(audioPlayerViewModel.song?.name ?? "")
@@ -118,6 +127,6 @@ struct MusicInfo:View{
 }
 
 #Preview {
-  ContentView().environment(
-    \.managedObjectContext, PersistenceController.preview.container.viewContext)
+    ContentView().environment(
+        \.managedObjectContext, PersistenceController.preview.container.viewContext)
 }
