@@ -15,6 +15,7 @@ import MusicKit
 //https://stackoverflow.com/questions/65757784/how-to-best-pass-data-for-form-editing-in-swuiftui-while-having-that-data-avail
 //https://www.swiftbysundell.com/articles/swiftui-state-management-guide/
 //https://www.reddit.com/r/swift/comments/gb8742/reasoning_behind_observableobjects/
+//https://stackoverflow.com/questions/77829110/how-define-a-size-for-image-with-asyncimage
 
 import CoreData
 import SwiftUI
@@ -39,8 +40,8 @@ struct ContentView: View {
   
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
   @StateObject private var globalScreenManager: GlobalScreenManager = GlobalScreenManager()
-  @ObservedObject var libraryViewModel: SongListViewModel = .init(
-    newDataSourceFunction: fetchLibrary)
+  @ObservedObject var libraryViewModel: LibraryViewModel = LibraryViewModel()
+  @ObservedObject var browseViewModel: BrowseViewModel = BrowseViewModel()
   
   var body: some View {
     NavigationStack {
@@ -55,6 +56,7 @@ struct ContentView: View {
             .tabItem {
               Label("Library", systemImage: "books.vertical.fill")
           }.environmentObject(libraryViewModel)
+          
           LikedController().tabItem{
             Label("Liked", systemImage: "heart.fill")
           }
@@ -64,6 +66,7 @@ struct ContentView: View {
               Label("Recommended", systemImage: "house.fill")
           }
           BrowseViewController().tabItem{Label("Browse", systemImage: "magnifyingglass.circle.fill")}
+            .environmentObject(browseViewModel)
           
           SettingsViewController()
             .tabItem {
@@ -89,9 +92,11 @@ struct ContentView: View {
             .frame(maxHeight: 80)
             .offset(y:-49)
           }
-        }).navigationDestination(isPresented: $globalScreenManager.showFullscreenPlayer ) {
+        }).environmentObject(globalScreenManager)
+        .navigationDestination(isPresented: $globalScreenManager.showFullscreenPlayer ) {
           if audioPlayerViewModel.song != nil {
             PlayerView(song: audioPlayerViewModel.song!, startNew: false)
+              .environmentObject(globalScreenManager)
               .transition(.move(edge: .bottom))
           }
         }
@@ -120,16 +125,21 @@ struct ContentView: View {
 // source https://www.youtube.com/watch?v=_KohThDWl5Y
 struct MusicInfo:View{
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
-  @ObservedObject var playerObserver = ApplicationMusicPlayerObserver()
+  
   var body: some View {
     ZStack{
       HStack(spacing:0) {
-        AsyncImage(url: playerObserver.song?.artwork?.url(width: 80, height: 80))
+
+      AsyncImage(url: audioPlayerViewModel.song?.artwork?.url(width: 50, height: 50)) { result in
+          result.image?
+              .resizable()
+              .scaledToFill()
+          }
           .frame(width: 80, height: 80)
-          .aspectRatio(contentMode: .fill)
 
           Spacer()
-          Text(playerObserver.song?.title ?? "")
+        HStack {
+          Text(audioPlayerViewModel.song?.title ?? "")
             .fontWeight(.semibold)
             .lineLimit(1)
             .padding(.leading, 15)
@@ -139,16 +149,15 @@ struct MusicInfo:View{
               .labelStyle(.iconOnly)
               .imageScale(.large)
             
-            
             AsyncButton(
-              systemImageName: playerObserver.isPlaying ? "pause.fill" : "play.fill",
+              systemImageName: audioPlayerViewModel.isPlaying ? "pause.fill" : "play.fill",
                action: audioPlayerViewModel.playOrPause
            )     .imageScale(.large)
        
             AsyncButton( systemImageName: "forward.fill", action: audioPlayerViewModel.skipForwards).labelStyle(.iconOnly)
           }.padding(15)
           .imageScale(.large)
-        
+        }.frame(maxWidth: UIScreen.main.bounds.width - 30)
       }.padding(10)
     }
 

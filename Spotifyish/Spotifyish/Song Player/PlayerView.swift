@@ -3,7 +3,6 @@ import MediaPlayer
 import MusicKit
 import SwiftUI
 
-//Sources
 //https://medium.com/@jongary/binding-a-swiftui-slider-to-an-avplayers-time-a9660526170a
 //https://medium.com/@tokusha.aa/mastering-swiftui-and-avplayer-integration-a-complete-guide-to-timecodes-and-advanced-playback-6ef9a88b3b8d
 
@@ -18,30 +17,30 @@ struct PlayerView: View {
   var startNew: Bool = false
   @EnvironmentObject var globalScreenManager: GlobalScreenManager
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
-  @ObservedObject var playerObserver = ApplicationMusicPlayerObserver()
 
   var body: some View {
     VStack(alignment: .center, spacing: 10) {
       Spacer()
-      AsyncImage(
-        url: playerObserver.song?.artwork?.url(width: 200, height: 200)
-      )
-      .frame(width: 200, height: 200)
-      .foregroundStyle(.secondary)
-      .padding(.leading, 20)
-      .padding(.trailing, 10)
-
-      if (playerObserver.songLoading) {
+      
+      AsyncImage(url: audioPlayerViewModel.song?.artwork?.url(width: 200, height: 200)) { result in
+          result.image?
+              .resizable()
+              .scaledToFill()
+          }
+          .frame(width: 200, height: 200)
+          .foregroundStyle(.secondary)
+      
+      if (audioPlayerViewModel.songLoading) {
         ProgressView()
       }
       Spacer()
-      Text(playerObserver.song?.title ?? "")
+      Text(audioPlayerViewModel.song?.title ?? "")
         .font(.title)
         .fontWeight(.bold)
         .lineLimit(nil)
         .multilineTextAlignment(.center)
 
-      Text(playerObserver.song?.artistName ?? "")
+      Text(audioPlayerViewModel.song?.artistName ?? "")
         .font(.subheadline)
 
       HStack(spacing: 20) {
@@ -52,7 +51,7 @@ struct PlayerView: View {
                 .labelStyle(.iconOnly).imageScale(.large)
 
         AsyncButton(
-          systemImageName: playerObserver.isPlaying
+          systemImageName: audioPlayerViewModel.isPlaying
             ? "pause.fill" : "play.fill",
           action: audioPlayerViewModel.playOrPause
         ).labelStyle(.iconOnly)
@@ -68,13 +67,13 @@ struct PlayerView: View {
       VStack {
         HStack {
           Slider(
-            value: $playerObserver.currentTime,
-            in: (0...playerObserver.duration),
+            value: $audioPlayerViewModel.currentTime,
+            in: (0...audioPlayerViewModel.duration),
             onEditingChanged: { editing in
               if !editing {
                 audioPlayerViewModel.isScrubbing = false
                 audioPlayerViewModel.scrubTo(
-                  newTime: playerObserver.currentTime
+                  newTime: audioPlayerViewModel.currentTime
                 )
               } else {
                 audioPlayerViewModel.isScrubbing = true
@@ -84,16 +83,16 @@ struct PlayerView: View {
           Text(
             String(
               format: "%02d:%02d",
-              ((Int)((playerObserver.currentTime))) / 60,
-              ((Int)((playerObserver.currentTime))) % 60
+              ((Int)((audioPlayerViewModel.currentTime))) / 60,
+              ((Int)((audioPlayerViewModel.currentTime))) % 60
             )
           ).font(.caption)
           Text("/")
           Text(
             String(
               format: "%02d:%02d",
-              ((Int)((playerObserver.duration))) / 60,
-              ((Int)((playerObserver.duration))) % 60
+              ((Int)((audioPlayerViewModel.duration))) / 60,
+              ((Int)((audioPlayerViewModel.duration))) % 60
             )
           ).font(.caption)
 
@@ -101,10 +100,8 @@ struct PlayerView: View {
 
       }.padding()
         .onAppear {
-          if startNew {
-        
-            print("LOAD NEW QUEUE AND SONG, \(playerQueue?.count ?? -1)")
-            print("SONG INDEX:", songIndex)
+          if startNew && (audioPlayerViewModel.song==nil || (audioPlayerViewModel.song != nil && (song.title != audioPlayerViewModel.song?.title && song.artistName != audioPlayerViewModel.song?.artistName))) {
+      
             Task {
               //await audioPlayerViewModel.loadNewQueue(playlist: playerQueue ?? [])
               await audioPlayerViewModel.changeSong(

@@ -3,6 +3,8 @@ import MusicKit
 //  SongCardList.swift
 //  Spotifyish
 // https://stackoverflow.com/questions/66494887/swiftui-list-add-empty-space-at-the-bottom
+
+//https://medium.com/p/4af42f4503db
 //  Created by Julia  Smith on 3/25/25.
 //
 import SwiftUI
@@ -17,20 +19,22 @@ class SelectionData: ObservableObject {
 }
 
 struct SongList: View {
-  var songs: [MusicKit.Song]
-
+  @State var songs: [MusicKit.Song]
   @State private var selectedSong: MusicKit.Song?
   @State private var selectedSongIndex: Int?
+  @State private var searchText: String = ""
   @StateObject var selectionData: SelectionData = SelectionData()
   var body: some View {
     NavigationStack {
+      var _ = print(songs)
       List {
         ForEach(Array(songs.enumerated()), id: \.element.id) { index, song in
           SongCard(song: song).onTapGesture {
             selectionData.selection = SongSelection(song: song, index: index)
           }.listRowSeparator(Visibility.hidden)
         }
-      }.safeAreaPadding(
+      }
+      .safeAreaPadding(
         EdgeInsets(top: 0, leading: 0, bottom: 100, trailing: 0)
       )
       .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -42,7 +46,6 @@ struct SongList: View {
           playerQueue: songs,
           startNew: true
         )
-
       }
     }
   }

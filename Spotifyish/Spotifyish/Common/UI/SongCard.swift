@@ -14,11 +14,15 @@ struct SongCard: View {
   let song: MusicKit.Song
   var body: some View {
       HStack {
-        AsyncImage(url: song.artwork?.url(width: 25, height: 25))
-          .frame(width: 25, height: 25)
-          .foregroundStyle(.secondary)
-          .padding(.leading, 20)
-          
+        
+        AsyncImage(url: song.artwork?.url(width: 90, height: 90)) { result in
+            result.image?
+                .resizable()
+                .scaledToFill()
+            }
+            .frame(width: 90, height: 90)
+            .foregroundStyle(.secondary)
+
         Spacer()
         VStack( alignment: .trailing, spacing: 1) {
           Text(self.song.title)

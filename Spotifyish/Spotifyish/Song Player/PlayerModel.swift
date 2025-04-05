@@ -33,23 +33,98 @@ import Combine
 import MusicKit
 import SwiftUI
 
-class ApplicationMusicPlayerObserver: ObservableObject {
-  @Published var song: MusicKit.Song? = nil
+//class ApplicationMusicPlayerObserver: ObservableObject {
+//  @Published var song: MusicKit.Song? = nil
+//  @Published var duration = 0.0
+//  @Published var currentTime: Double = ApplicationMusicPlayer.shared.playbackTime
+//  private var timer: Timer?
+//  @ObservedObject private var playerState = ApplicationMusicPlayer.shared.state
+//  @Published var isPlaying: Bool = false
+//  @Published var songLoading : Bool = false
+//  let musicPlayer = ApplicationMusicPlayer.shared
+//  private var cancellables: Set<AnyCancellable> = []
+//  private var queueObserver: AnyCancellable?
+//  private var stateObserver: AnyCancellable?
+//
+//  private func addPeriodicTimeObserver() {
+//    self.timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) {
+//      timer in
+//        self.currentTime = self.musicPlayer.playbackTime
+//      print("PLAYBACK TIME IS: '\(self.currentTime)")
+//    }
+//  }
+//
+//  private func removePeriodicTimeObserver() {
+//    self.timer?.invalidate()
+//    self.timer = nil
+//  }
+//
+//  init() {
+//
+//    if (stateObserver == nil) {
+//      stateObserver = ApplicationMusicPlayer.shared.state.objectWillChange
+//       .sink { [weak self] _ in
+//         guard let self = self else { return }
+//         
+//         let playbackStatus = ApplicationMusicPlayer.shared.state.playbackStatus
+//         DispatchQueue.main.asyncAfter(
+//           deadline: .now() + 0.25,
+//             execute: {
+//             self.isPlaying = playbackStatus == .playing
+//             if (self.isPlaying){
+//               self.addPeriodicTimeObserver()
+//             } else {
+//               self.removePeriodicTimeObserver()
+//             }
+//           })
+//       }
+//    }
+//   
+//    if (queueObserver == nil) {
+//      queueObserver = ApplicationMusicPlayer.shared.queue.objectWillChange
+//        .sink { [weak self] _ in
+//          guard let self = self else { return }
+//            self.songLoading=true
+//            DispatchQueue.main.asyncAfter(
+//              deadline: .now() + 0.25,
+//              execute: {
+//                if case let .song(song) = ApplicationMusicPlayer.shared.queue.currentEntry?.item {
+//                  self.songLoading=false
+//                  self.song = song
+//                  self.duration = song.duration ?? 0.0
+//                  self.currentTime = 0.0
+//                }
+//              }
+//            )
+//        }
+//    }
+//  }
+//}
+
+class AudioPlayerViewModel: ObservableObject {
+  static let shared = AudioPlayerViewModel()
+  let audioPlayer = ApplicationMusicPlayer.shared
+  @Published var song: MusicKit.Song?
+  @Published var songLoading: Bool = false
+  @Published var songError: Error?
+  private var queue = ApplicationMusicPlayer.Queue([])
+  @Published var showSongError: Bool = false
+  @Published var isScrubbing: Bool = false
+  @Published var isPlaying = false
   @Published var duration = 0.0
   @Published var currentTime: Double = ApplicationMusicPlayer.shared.playbackTime
   private var timer: Timer?
   @ObservedObject private var playerState = ApplicationMusicPlayer.shared.state
-  @Published var isPlaying: Bool = false
-  @Published var songLoading : Bool = false
   let musicPlayer = ApplicationMusicPlayer.shared
   private var cancellables: Set<AnyCancellable> = []
   private var queueObserver: AnyCancellable?
   private var stateObserver: AnyCancellable?
-
+  
   private func addPeriodicTimeObserver() {
     self.timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) {
       timer in
         self.currentTime = self.musicPlayer.playbackTime
+      print("PLAYBACK TIME IS: '\(self.currentTime)")
     }
   }
 
@@ -98,28 +173,14 @@ class ApplicationMusicPlayerObserver: ObservableObject {
         }
     }
   }
-}
-
-@MainActor
-class AudioPlayerViewModel: ObservableObject {
-  static let shared = AudioPlayerViewModel()
-  let audioPlayer = ApplicationMusicPlayer.shared
-  @Published var song: MusicKit.Song?
-  @Published var songLoading: Bool = false
-  @Published var songError: Error?
-  @Published var showSongError: Bool = false
-  @Published var isScrubbing: Bool = false
-  @Published var isPlaying = false
-
-  init() {
-    return
-  }
 
   func loadNewQueue(playlist: [MusicKit.Song], songIndex: Int) {
     let newQueue: ApplicationMusicPlayer.Queue = ApplicationMusicPlayer.Queue(
       for: playlist,
       startingAt: playlist[songIndex]
     )
+  
+    self.queue = newQueue
     self.audioPlayer.queue = newQueue
   }
 
@@ -150,8 +211,6 @@ class AudioPlayerViewModel: ObservableObject {
       try await self.audioPlayer.prepareToPlay()
       await self.playOrPause()
     } catch {
-      print("error")
-      print(error)
       self.songLoading = false
       self.songError = error
       self.showSongError = true
@@ -186,15 +245,18 @@ class AudioPlayerViewModel: ObservableObject {
     if song == nil {
       return
     }
+    print ("NEW TIME \(newTime)")
     audioPlayer.playbackTime = newTime
   }
 
   func playOrPause() async {
     if self.audioPlayer.state.playbackStatus == .playing {
       self.audioPlayer.pause()
+      removePeriodicTimeObserver()
     } else {
       do {
         try await self.audioPlayer.play()
+//        addPeriodicTimeObserver()
       } catch {
         print("error playing  \(error)")
       }

@@ -1,0 +1,60 @@
+//
+//  LibraryViewModel.swift
+//  Spotifyish
+//
+//  Created by Julia  Smith on 4/5/25.
+//
+
+import Algorithms
+import MusicKit
+import SwiftUI
+import MusadoraKit
+
+class BrowseViewModel: ObservableObject {
+  @EnvironmentObject var globalScreenManager: GlobalScreenManager
+  @Published var errorMessage: String? = nil
+  @Published var showError: Bool = false
+  @Published var allSongs: [MusicKit.Song] = []
+  @Published var currentlyVisibleSongs: [MusicKit.Song] = []
+  @Published var searchTerm: String = ""
+  @Published var loading: Bool = false
+  @Published var hasNextBatch: Bool = false
+  @Published var searchActive: Bool = false
+  private var nextBatch: MusicItemCollection<MusicKit.Song>?
+  @Published var genreCharts: [GenreChart] = []
+  @Published var loaded: Bool = false
+
+  init(){
+    Task {await fetchGenres() }
+  }
+  
+  func fetchGenres() async {
+    self.loading = true
+    self.loaded = false
+    self.showError = false
+    
+    defer {
+      self.loading = false
+    }
+    
+    do{
+      let result: [GenreChart] = try await fetchGenreCharts()
+      self.loading=false
+      self.loaded = true
+      self.genreCharts = result
+    } catch AppleMusicError.networkError(let reason) {
+      self.showError = true
+      self.errorMessage = reason
+      self.loaded = false
+    } catch AppleMusicError.unknown(reason: let reason) {
+      self.showError = true
+      self.errorMessage = reason
+      self.loaded = false
+    } catch {
+      self.showError = true
+      self.errorMessage = error.localizedDescription
+      self.loaded = false
+    }
+  }
+  
+}

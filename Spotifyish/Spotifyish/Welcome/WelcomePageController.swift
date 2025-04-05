@@ -46,7 +46,6 @@ class WelcomePageController: UIViewController {
             print("Saved users: \(users)")
             
             for family in UIFont.familyNames.sorted() {
-                print("📁 Font Family: \(family)")
                 for name in UIFont.fontNames(forFamilyName: family) {
                     print("    ↪︎ \(name)")
                 }

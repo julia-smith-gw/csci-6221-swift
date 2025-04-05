@@ -1,12 +1,15 @@
 import MusicKit
-// SHREEYA/JULIA
-//https://medium.engineering/how-to-do-pagination-in-swiftui-04511be7fbd1
+//https://stackoverflow.com/questions/76832159/searchable-make-the-search-box-stick-to-the-top-without-moving-when-focused
 import SwiftUI
 
+// SHREEYA/JULIA
+//https://medium.engineering/how-to-do-pagination-in-swiftui-04511be7fbd1
+
+//https://developer.apple.com/documentation/swiftui/adding-a-search-interface-to-your-app
+
 struct LibraryController: View {
-  var songs: [MusicKit.Song] = []
   @EnvironmentObject var globalScreenManager: GlobalScreenManager
-  @EnvironmentObject var libraryViewModel: SongListViewModel
+  @EnvironmentObject var libraryViewModel: LibraryViewModel
   @State private var songsLoading: Bool = false
 
   private func makeMessageView(_ message: String) -> some View {
@@ -14,71 +17,63 @@ struct LibraryController: View {
   }
 
   private var loadingView: some View {
-    VStack{
+    VStack {
       ProgressView()
       Text("Loading library...")
     }
   }
 
   var body: some View {
-    if libraryViewModel.loading {
-      loadingView
-    } else if libraryViewModel.loaded && libraryViewModel.songs.isEmpty {
-      makeMessageView("No songs found")
-    } else {
-      contentView
-    }
+    VStack {
+      if libraryViewModel.loading
+        && libraryViewModel.currentlyVisibleSongs.isEmpty
+      {
+        loadingView
+      } else if libraryViewModel.loaded
+        && libraryViewModel.currentlyVisibleSongs.isEmpty
+      {
+        makeMessageView("No songs found")
+      } else {
+        contentView
+      }
+
+    }.safeAreaInset(
+      edge: .top,
+      content: {
+        ZStack {
+          Rectangle()
+            .fill(.background)
+            .overlay {
+
+              CustomSearchBar(
+                searchText: $libraryViewModel.searchTerm,
+                submitAction: {
+                  await libraryViewModel.searchLibrary()
+                },
+                searchActive: $libraryViewModel.searchActive
+              )
+              .offset(y: 40)
+            }
+            .frame(maxHeight: 120)
+            .offset(y: -60)
+        }
+      }
+    )
+
   }
 
   private var contentView: some View {
-    VStack{
-      SongList(songs: libraryViewModel.loaded ? libraryViewModel.songs : [])
-      if (!libraryViewModel.loading && !libraryViewModel.loaded)
-          {
-        var _ = print("go")
-        var _ = print(libraryViewModel)
-        loadingView
-          .onAppear {
-            Task {
-              do {
-               try await libraryViewModel.fetch()
-              } catch AppleMusicError.networkError(let reason) {
-                globalScreenManager.showErrorAlert = true
-                globalScreenManager.errorMsg = reason
-              } catch {
-                globalScreenManager.showErrorAlert = true
-                globalScreenManager.errorMsg = error.localizedDescription
-              }
-
-            }
-          }
-      } else {
-        EmptyView()
-      }
+    NavigationStack {
+      LibrarySongList()
+        .scrollDismissesKeyboard(.immediately)
+        .scrollContentBackground(.hidden)
+        .alert(isPresented: $libraryViewModel.showError) {
+          Alert(
+            title: Text("Error"),
+            message: Text(libraryViewModel.errorMessage ?? "Unknown error"),
+            dismissButton: .default(Text("OK"))
+          )
+        }
     }
-    .scrollDismissesKeyboard(.immediately)
-    .scrollContentBackground(.hidden)
   }
-
-  //  var body: some View {
-  //    VStack{
-  //      if (songsLoading) {
-  //        ProgressView()
-  //      }
-  //    }.task {
-  //      do {
-  //        songsLoading=true
-  //        let results: [MusicKit.Song] = try await fetchLibrary()
-  //        print(results)
-  //      } catch AppleMusicError.networkError(let reason){
-  //        globalScreenManager.showErrorAlert = true
-  //        globalScreenManager.errorMsg = reason
-  //      } catch {
-  //        globalScreenManager.showErrorAlert = true
-  //        globalScreenManager.errorMsg = error.localizedDescription
-  //      }
-  //      songsLoading=false
-  //    }
-  ////    SongList(songs: songs)
-  //  }
 }
