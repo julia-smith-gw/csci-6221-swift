@@ -13,7 +13,8 @@ import MusicKit
 //https://www.reddit.com/r/SwiftUI/comments/s5npb6/how_to_increasedecrease_the_size_of_a_view/
 //https://developer.apple.com/documentation/swiftui/view/navigationdestination(for:destination:)
 //https://stackoverflow.com/questions/65757784/how-to-best-pass-data-for-form-editing-in-swuiftui-while-having-that-data-avail
-
+//https://www.swiftbysundell.com/articles/swiftui-state-management-guide/
+//https://www.reddit.com/r/swift/comments/gb8742/reasoning_behind_observableobjects/
 
 import CoreData
 import SwiftUI
@@ -119,34 +120,32 @@ struct ContentView: View {
 // source https://www.youtube.com/watch?v=_KohThDWl5Y
 struct MusicInfo:View{
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
+  @ObservedObject var playerObserver = ApplicationMusicPlayerObserver()
   var body: some View {
     ZStack{
       HStack(spacing:0) {
-        AsyncImage(url: audioPlayerViewModel.song?.artwork?.url(width: 80, height: 80))
+        AsyncImage(url: playerObserver.song?.artwork?.url(width: 80, height: 80))
           .frame(width: 80, height: 80)
           .aspectRatio(contentMode: .fill)
 
           Spacer()
-          Text(audioPlayerViewModel.song?.title ?? "")
+          Text(playerObserver.song?.title ?? "")
             .fontWeight(.semibold)
             .lineLimit(1)
             .padding(.leading, 15)
           
           HStack (spacing: 10) {
-            Button("Play last", systemImage: "backward.fill", action: audioPlayerViewModel.skipBackwards)
+            AsyncButton( systemImageName: "backward.fill", action: audioPlayerViewModel.skipBackwards)
               .labelStyle(.iconOnly)
               .imageScale(.large)
             
             
             AsyncButton(
-               systemImageName: audioPlayerViewModel.isPlaying ? "pause.fill" : "play.fill",
+              systemImageName: playerObserver.isPlaying ? "pause.fill" : "play.fill",
                action: audioPlayerViewModel.playOrPause
            )     .imageScale(.large)
-
-  //          Button("Play or pause", systemImage: audioPlayerViewModel.isPlaying ? "pause.fill" : "play.fill", action:audioPlayerViewModel.playOrPause
-  //          ).labelStyle(.iconOnly)
        
-            Button("Play next", systemImage: "forward.fill", action: audioPlayerViewModel.skipForwards).labelStyle(.iconOnly)
+            AsyncButton( systemImageName: "forward.fill", action: audioPlayerViewModel.skipForwards).labelStyle(.iconOnly)
           }.padding(15)
           .imageScale(.large)
         

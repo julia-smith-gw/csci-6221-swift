@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		374D62E52D9E1483007370A3 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 374D62E42D9E1483007370A3 /* Algorithms */; };
+		37FBD1492DA01F9100AB9314 /* MusadoraKit in Frameworks */ = {isa = PBXBuildFile; productRef = 37FBD1482DA01F9100AB9314 /* MusadoraKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -70,6 +71,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				374D62E52D9E1483007370A3 /* Algorithms in Frameworks */,
+				37FBD1492DA01F9100AB9314 /* MusadoraKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -131,6 +133,7 @@
 			name = Spotifyish;
 			packageProductDependencies = (
 				374D62E42D9E1483007370A3 /* Algorithms */,
+				37FBD1482DA01F9100AB9314 /* MusadoraKit */,
 			);
 			productName = Spotifyish;
 			productReference = 375A3CA52D937789002D05FC /* Spotifyish.app */;
@@ -216,6 +219,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				374D62E32D9E1483007370A3 /* XCRemoteSwiftPackageReference "swift-algorithms" */,
+				37FBD1472DA01F9100AB9314 /* XCRemoteSwiftPackageReference "MusadoraKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 375A3CA62D937789002D05FC /* Products */;
@@ -592,6 +596,14 @@
 				minimumVersion = 1.2.1;
 			};
 		};
+		37FBD1472DA01F9100AB9314 /* XCRemoteSwiftPackageReference "MusadoraKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/rryam/MusadoraKit";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -599,6 +611,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 374D62E32D9E1483007370A3 /* XCRemoteSwiftPackageReference "swift-algorithms" */;
 			productName = Algorithms;
+		};
+		37FBD1482DA01F9100AB9314 /* MusadoraKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 37FBD1472DA01F9100AB9314 /* XCRemoteSwiftPackageReference "MusadoraKit" */;
+			productName = MusadoraKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

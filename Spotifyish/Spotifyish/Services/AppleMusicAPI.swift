@@ -27,8 +27,6 @@ func authenticateToAppleMusic() async throws {
 func fetchLibrary(musicLibraryRequest: MusicLibraryRequest<MusicKit.Song> = MusicLibraryRequest<MusicKit.Song>()) async throws -> MusicLibraryResponse<MusicKit.Song>{
     do {
       let result = try await musicLibraryRequest.response()
-      print("song")
-      print(result.items)
       return result
     } catch let urlError as URLError{
       throw AppleMusicError.networkError(reason: "Network Error: \(urlError.localizedDescription) (Code: \(urlError.code))")

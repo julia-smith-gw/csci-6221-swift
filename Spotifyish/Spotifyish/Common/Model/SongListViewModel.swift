@@ -31,7 +31,9 @@ class SongListViewModel : ObservableObject  {
       }
       loading = true
       let result: MusicLibraryResponse<MusicKit.Song> = try await dataSourceCall(call)
-      songs += result.items.uniqued(on: \.id)
+      let uniqueSongs = result.items.uniqued(on: \.id).filter { $0.playParameters != nil }
+      songs+=uniqueSongs
+      print("NEW Songs: \(uniqueSongs.count)")
       nextBatchLoading=false
       hasNextBatch = result.items.hasNextBatch
       loading=false
