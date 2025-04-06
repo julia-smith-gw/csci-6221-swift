@@ -1,3 +1,5 @@
+import CoreData
+import MusicKit
 //
 //  ContentView.swift
 //  Spotifyish
@@ -6,7 +8,6 @@
 //
 /// Makes a new search request to MusicKit when the current search term changes.
 import SwiftUI
-import MusicKit
 
 //https://stackoverflow.com/questions/73488386/swiftui-animation-from-screen-bottom-not-working-properly
 //https://www.youtube.com/watch?v=vqPK8qFsoBg&t=145s
@@ -16,9 +17,6 @@ import MusicKit
 //https://www.swiftbysundell.com/articles/swiftui-state-management-guide/
 //https://www.reddit.com/r/swift/comments/gb8742/reasoning_behind_observableobjects/
 //https://stackoverflow.com/questions/77829110/how-define-a-size-for-image-with-asyncimage
-
-import CoreData
-import SwiftUI
 
 @Observable
 class GlobalScreenManager: ObservableObject {
@@ -35,77 +33,108 @@ struct ContentView: View {
     sortDescriptors: [
       NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)
     ],
-    animation: .default)
+    animation: .default
+  )
   private var items: FetchedResults<Item>
-  
+
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
-  @StateObject private var globalScreenManager: GlobalScreenManager = GlobalScreenManager()
+  @StateObject private var globalScreenManager: GlobalScreenManager =
+    GlobalScreenManager()
   @ObservedObject var libraryViewModel: LibraryViewModel = LibraryViewModel()
   @ObservedObject var browseViewModel: BrowseViewModel = BrowseViewModel()
-  
+  @ObservedObject var likedViewModel: LikedViewModel = LikedViewModel()
+
   var body: some View {
-    NavigationStack {
-      if (!globalScreenManager.authorized) {
+    ZStack {
+      if !globalScreenManager.authorized {
         ProgressView()
         Text("Fetching authorization...")
-      } else if (globalScreenManager.showErrorAlert && !globalScreenManager.authorized) {
-        Text("Authorization to Apple Music failed. Please exit the app and try again later.")
+      } else if globalScreenManager.showErrorAlert
+        && !globalScreenManager.authorized
+      {
+        Text(
+          "Authorization to Apple Music failed. Please exit the app and try again later."
+        )
       } else {
+        var _ = print("show de actual app")
         TabView {
-          LibraryController()
-            .tabItem {
-              Label("Library", systemImage: "books.vertical.fill")
+          NavigationStack {
+            LibraryController()
+          }.tabItem {
+            Label("Library", systemImage: "books.vertical.fill")
           }.environmentObject(libraryViewModel)
-          
-          LikedController().tabItem{
-            Label("Liked", systemImage: "heart.fill")
+
+          NavigationStack {
+            LikedController()
           }
-          
+          .tabItem {
+            Label("Liked", systemImage: "heart.fill")
+          }.environmentObject(likedViewModel)
+
           RecommendedViewController()
             .tabItem {
               Label("Recommended", systemImage: "house.fill")
+            }
+
+          NavigationStack {
+            BrowseViewController()
+          }.tabItem {
+            Label("Browse", systemImage: "magnifyingglass.circle.fill")
           }
-          BrowseViewController().tabItem{Label("Browse", systemImage: "magnifyingglass.circle.fill")}
-            .environmentObject(browseViewModel)
+          .environmentObject(browseViewModel)
+
+          NavigationStack {
+            VStack{
+            } .navigationDestination(
+              isPresented: $globalScreenManager.showFullscreenPlayer
+            ) {
+              if audioPlayerViewModel.song != nil {
+                PlayerView(song: audioPlayerViewModel.song!, startNew: false)
+                  .environmentObject(globalScreenManager)
+                  .transition(.move(edge: .bottom))
+              }
+            }
+          }
           
           SettingsViewController()
             .tabItem {
               Label("Settings", systemImage: "gearshape.fill")
             }
-        }.environmentObject(globalScreenManager)
-        .safeAreaInset(edge: .bottom, content: {
-          if (audioPlayerViewModel.song != nil) {
-            ZStack {
-              Rectangle()
-                .fill(.ultraThickMaterial)
-                .overlay{
-                  MusicInfo()
-                }
-            }
-            .gesture(TapGesture(count: 1)
-              .onEnded{
-                withAnimation {
-                  globalScreenManager.showFullscreenPlayer=true
+        }.safeAreaInset(
+          edge: .bottom,
+          content: {
+            var _ = print("show de fullscreen player??")
+            var _ = print(globalScreenManager.showFullscreenPlayer)
+            if audioPlayerViewModel.song != nil
+              && !globalScreenManager.showFullscreenPlayer
+            {
+              ZStack {
+                Rectangle()
+                  .fill(.ultraThickMaterial)
+                  .overlay {
+                      MusicInfo()
                 }
               }
-            )
-            .frame(maxHeight: 80)
-            .offset(y:-49)
+              .gesture(
+                TapGesture(count: 1)
+                  .onEnded {
+                    withAnimation {
+                      globalScreenManager.showFullscreenPlayer = true
+                    }
+                  }
+              )
+              .frame(maxHeight: 80)
+              .offset(y: -49)
+            }
           }
-        }).environmentObject(globalScreenManager)
-        .navigationDestination(isPresented: $globalScreenManager.showFullscreenPlayer ) {
-          if audioPlayerViewModel.song != nil {
-            PlayerView(song: audioPlayerViewModel.song!, startNew: false)
-              .environmentObject(globalScreenManager)
-              .transition(.move(edge: .bottom))
-          }
-        }
+        )
       }
-    }.task  {
+    }.environmentObject(globalScreenManager)
+    .task {
       do {
         try await authenticateToAppleMusic()
         globalScreenManager.authorized = true
-      } catch AppleMusicError.authenticationFailed(let reason){
+      } catch AppleMusicError.authenticationFailed(let reason) {
         globalScreenManager.showErrorAlert = true
         globalScreenManager.errorMsg = reason
         globalScreenManager.authorized = false
@@ -115,48 +144,60 @@ struct ContentView: View {
         globalScreenManager.errorMsg = error.localizedDescription
       }
     }.alert(isPresented: $globalScreenManager.showErrorAlert) {
-      Alert(title: Text("Error"), message: Text(globalScreenManager.errorMsg), dismissButton: .default(Text("OK")))
+      Alert(
+        title: Text("Error"),
+        message: Text(globalScreenManager.errorMsg),
+        dismissButton: .default(Text("OK"))
+      )
     }
   }
 }
 
-
 //MINI PLAYER JULIA WORK IN PROGRESS
 // source https://www.youtube.com/watch?v=_KohThDWl5Y
-struct MusicInfo:View{
+struct MusicInfo: View {
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
-  
+
   var body: some View {
-    ZStack{
-      HStack(spacing:0) {
+    ZStack {
+      HStack(spacing: 0) {
 
-      AsyncImage(url: audioPlayerViewModel.song?.artwork?.url(width: 50, height: 50)) { result in
+        AsyncImage(
+          url: audioPlayerViewModel.song?.artwork?.url(width: 50, height: 50)
+        ) { result in
           result.image?
-              .resizable()
-              .scaledToFill()
-          }
-          .frame(width: 80, height: 80)
+            .resizable()
+            .scaledToFill()
+        }
+        .frame(width: 80, height: 80)
 
-          Spacer()
+        Spacer()
         HStack {
           Text(audioPlayerViewModel.song?.title ?? "")
             .fontWeight(.semibold)
             .lineLimit(1)
             .padding(.leading, 15)
-          
-          HStack (spacing: 10) {
-            AsyncButton( systemImageName: "backward.fill", action: audioPlayerViewModel.skipBackwards)
-              .labelStyle(.iconOnly)
-              .imageScale(.large)
-            
+
+          HStack(spacing: 10) {
             AsyncButton(
-              systemImageName: audioPlayerViewModel.isPlaying ? "pause.fill" : "play.fill",
-               action: audioPlayerViewModel.playOrPause
-           )     .imageScale(.large)
-       
-            AsyncButton( systemImageName: "forward.fill", action: audioPlayerViewModel.skipForwards).labelStyle(.iconOnly)
+              systemImageName: "backward.fill",
+              action: audioPlayerViewModel.skipBackwards
+            )
+            .labelStyle(.iconOnly)
+            .imageScale(.large)
+
+            AsyncButton(
+              systemImageName: audioPlayerViewModel.isPlaying
+                ? "pause.fill" : "play.fill",
+              action: audioPlayerViewModel.playOrPause
+            ).imageScale(.large)
+
+            AsyncButton(
+              systemImageName: "forward.fill",
+              action: audioPlayerViewModel.skipForwards
+            ).labelStyle(.iconOnly)
           }.padding(15)
-          .imageScale(.large)
+            .imageScale(.large)
         }.frame(maxWidth: UIScreen.main.bounds.width - 30)
       }.padding(10)
     }
@@ -166,5 +207,7 @@ struct MusicInfo:View{
 
 #Preview {
   ContentView().environment(
-    \.managedObjectContext, PersistenceController.preview.container.viewContext)
+    \.managedObjectContext,
+    PersistenceController.preview.container.viewContext
+  )
 }

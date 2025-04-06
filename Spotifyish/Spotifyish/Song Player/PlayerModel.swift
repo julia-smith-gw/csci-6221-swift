@@ -121,10 +121,11 @@ class AudioPlayerViewModel: ObservableObject {
   private var stateObserver: AnyCancellable?
   
   private func addPeriodicTimeObserver() {
-    self.timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) {
+    self.timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {
       timer in
-        self.currentTime = self.musicPlayer.playbackTime
-      print("PLAYBACK TIME IS: '\(self.currentTime)")
+      if (!self.isScrubbing) {
+        self.currentTime=self.audioPlayer.playbackTime
+      }
     }
   }
 
@@ -134,7 +135,6 @@ class AudioPlayerViewModel: ObservableObject {
   }
 
   init() {
-
     if (stateObserver == nil) {
       stateObserver = ApplicationMusicPlayer.shared.state.objectWillChange
        .sink { [weak self] _ in
@@ -245,7 +245,6 @@ class AudioPlayerViewModel: ObservableObject {
     if song == nil {
       return
     }
-    print ("NEW TIME \(newTime)")
     audioPlayer.playbackTime = newTime
   }
 
@@ -256,7 +255,7 @@ class AudioPlayerViewModel: ObservableObject {
     } else {
       do {
         try await self.audioPlayer.play()
-//        addPeriodicTimeObserver()
+        addPeriodicTimeObserver()
       } catch {
         print("error playing  \(error)")
       }

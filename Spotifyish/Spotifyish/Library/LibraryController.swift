@@ -37,7 +37,8 @@ struct LibraryController: View {
         contentView
       }
 
-    }.safeAreaInset(
+    }.frame(maxWidth: .infinity, maxHeight: .infinity)
+    .safeAreaInset(
       edge: .top,
       content: {
         ZStack {
@@ -63,7 +64,6 @@ struct LibraryController: View {
   }
 
   private var contentView: some View {
-    NavigationStack {
       LibrarySongList()
         .scrollDismissesKeyboard(.immediately)
         .scrollContentBackground(.hidden)
@@ -75,5 +75,4 @@ struct LibraryController: View {
           )
         }
     }
-  }
 }

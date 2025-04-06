@@ -44,7 +44,20 @@ func fetchLibrarySearchResult(searchTerm: String?) async throws
   }
 }
 
-
+func searchCatalog(searchTerm: String) async throws
+  -> MusicCatalogSearchResponse
+{
+  do {
+    let result = try await MCatalog.search(
+      for: searchTerm,
+      types: [.songs],
+      limit: 20
+    )
+    return result
+  } catch {
+    throw AppleMusicError.unknown(reason: error.localizedDescription)
+  }
+}
 
 func fetchEntireLibrary() async throws -> MusicItemCollection<MusicKit.Song> {
   do {
@@ -68,7 +81,7 @@ struct GenreChart: Hashable {
   static func == (lhs: GenreChart, rhs: GenreChart) -> Bool {
     return lhs.id == rhs.id
   }
-  var id : UUID = UUID()
+  var id: UUID = UUID()
   var genre: Genre? = nil
   var chart: MusicCatalogChartsResponse? = nil
   init(genre: Genre? = nil, chart: MusicCatalogChartsResponse? = nil) {
@@ -82,7 +95,12 @@ func fetchGenreCharts() async throws -> [GenreChart] {
     let topGenres = try await fetchTopGenres()
     var genreCharts: [GenreChart] = []
     for genre in topGenres {
-      let genreChart = try await MCatalog.charts(genre: genre, kinds: .dailyGlobalTop, types: .songs, limit: 5)
+      let genreChart = try await MCatalog.charts(
+        genre: genre,
+        kinds: .dailyGlobalTop,
+        types: .songs,
+        limit: 15
+      )
       let genreChartObj = GenreChart(genre: genre, chart: genreChart)
       genreCharts.append(genreChartObj)
     }
@@ -91,6 +109,76 @@ func fetchGenreCharts() async throws -> [GenreChart] {
     throw AppleMusicError.unknown(reason: error.localizedDescription)
   }
 }
+
+func fetchAllPlauylists() async throws -> MusicItemCollection<MLibraryPlaylist>
+{
+  do {
+    let result = try await MLibrary.playlists(limit: 100)
+    return result
+  } catch let urlError as URLError {
+    throw AppleMusicError.networkError(
+      reason:
+        "Network Error: \(urlError.localizedDescription) (Code: \(urlError.code))"
+    )
+  } catch {
+    #if DEBUG
+      print("Error fetching playlists: \(error.localizedDescription)")
+    #endif
+    throw AppleMusicError.unknown(reason: error.localizedDescription)
+  }
+}
+
+func fetchLikedPlaylist() async throws -> MusicItemCollection<Song> {
+  do {
+    let result = try await MLibrary.playlists()
+    guard
+      let favoritePlaylist = result.first(where: {
+        $0.name == "Favorite Songs"
+      })
+    else {
+      throw AppleMusicError.unknown(reason: "Favorite playlist not found")
+    }
+
+    guard let url = URL(string: "https://api.music.apple.com/v1/me/library/playlists/\(favoritePlaylist.id)/tracks")
+    else {
+      throw
+        AppleMusicError.unknown(reason: "Invalid URL")
+    }
+    let fullPlaylistReq = MusicDataRequest(
+      urlRequest: URLRequest(
+        url: url
+      )
+    )
+    let fullPlaylistResponse = try await fullPlaylistReq.response()
+    let decodedData = try JSONDecoder().decode(MusicItemCollection<Song>.self, from: fullPlaylistResponse.data)
+    print(try JSONDecoder().decode(MusicItemCollection<Song>.self, from: fullPlaylistResponse.data))
+    return decodedData
+
+  } catch {
+    throw error
+  }
+}
+
+//func fetchLikedPlaylist() async throws -> MusicItemCollection<Playlist>.Element{
+//  do {
+//    let result = try await MLibrary.playlists()
+//    guard let favoritePlaylist = result.first(where: {$0.name == "amvs in my head"}) else {
+//      throw AppleMusicError.unknown(reason: "Favorite playlist not found")
+//    }
+//    let playlist = try await MLibrary.playlist(id: favoritePlaylist.id)
+//    for song in playlist.tracks ?? [] {
+//      print("Song: \(song.title)")
+//    }
+//    return playlist
+//  } catch let urlError as URLError {
+//    throw AppleMusicError.networkError(
+//      reason:
+//        "Network Error: \(urlError.localizedDescription) (Code: \(urlError.code))"
+//    )
+//  } catch {
+//    throw AppleMusicError.unknown(reason: error.localizedDescription)
+//  }
+//}
 
 func fetchSongStreamingInfo(song: MusicKit.Song) async throws
   -> MusicItemCollection<MusicKit.Song>.Element

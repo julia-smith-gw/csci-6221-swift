@@ -22,10 +22,42 @@ class BrowseViewModel: ObservableObject {
   @Published var searchActive: Bool = false
   private var nextBatch: MusicItemCollection<MusicKit.Song>?
   @Published var genreCharts: [GenreChart] = []
+  @Published var searchSongs: MusicCatalogSearchResponse?
   @Published var loaded: Bool = false
 
   init(){
     Task {await fetchGenres() }
+  }
+  
+  func fetchCatalogSearchResults() async{
+    if (self.searchTerm == "") {
+      return
+    }
+    self.loading = true
+    self.loaded = false
+    self.showError = false
+    
+    defer {
+      self.loading = false
+    }
+    
+    do{
+      let result: MusicCatalogSearchResponse = try await searchCatalog(searchTerm: searchTerm)
+      self.loaded = true
+      self.searchSongs = result
+    } catch AppleMusicError.networkError(let reason) {
+      self.showError = true
+      self.errorMessage = reason
+      self.loaded = false
+    } catch AppleMusicError.unknown(reason: let reason) {
+      self.showError = true
+      self.errorMessage = reason
+      self.loaded = false
+    } catch {
+      self.showError = true
+      self.errorMessage = error.localizedDescription
+      self.loaded = false
+    }
   }
   
   func fetchGenres() async {
@@ -39,7 +71,6 @@ class BrowseViewModel: ObservableObject {
     
     do{
       let result: [GenreChart] = try await fetchGenreCharts()
-      self.loading=false
       self.loaded = true
       self.genreCharts = result
     } catch AppleMusicError.networkError(let reason) {

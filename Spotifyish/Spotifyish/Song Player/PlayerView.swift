@@ -15,7 +15,6 @@ struct PlayerView: View {
   var songIndex: Int?
   var playerQueue: [MusicKit.Song]? = []
   var startNew: Bool = false
-  @EnvironmentObject var globalScreenManager: GlobalScreenManager
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
 
   var body: some View {
@@ -30,9 +29,6 @@ struct PlayerView: View {
           .frame(width: 200, height: 200)
           .foregroundStyle(.secondary)
       
-      if (audioPlayerViewModel.songLoading) {
-        ProgressView()
-      }
       Spacer()
       Text(audioPlayerViewModel.song?.title ?? "")
         .font(.title)
