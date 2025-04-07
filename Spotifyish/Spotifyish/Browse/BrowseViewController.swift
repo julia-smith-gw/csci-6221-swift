@@ -19,7 +19,7 @@ struct BrowseViewController: View {
   }
 
   private var contentView: some View {
-    SongList(songs: Array(browseViewModel.searchSongs?.songs ?? []))
+    SongList(songs: browseViewModel.searchSongs)
       .scrollDismissesKeyboard(.immediately)
       .scrollContentBackground(.hidden)
       .alert(isPresented: $browseViewModel.showError) {
@@ -82,7 +82,7 @@ struct BrowseViewController: View {
           }
         }
       }.navigationDestination(item: $selectedChart) { selection in
-        SongList(songs: selection.chart?.songCharts.flatMap(\.items) ?? [])
+        SongList(songs: selection.songs)
       }
     }
     .safeAreaPadding(

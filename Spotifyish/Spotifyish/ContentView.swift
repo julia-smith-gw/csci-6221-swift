@@ -1,12 +1,6 @@
 import CoreData
 import MusicKit
-//
-//  ContentView.swift
-//  Spotifyish
-//
-//  Created by Julia  Smith on 3/25/25.
-//
-/// Makes a new search request to MusicKit when the current search term changes.
+import Foundation
 import SwiftUI
 
 //https://stackoverflow.com/questions/73488386/swiftui-animation-from-screen-bottom-not-working-properly
@@ -18,17 +12,17 @@ import SwiftUI
 //https://www.reddit.com/r/swift/comments/gb8742/reasoning_behind_observableobjects/
 //https://stackoverflow.com/questions/77829110/how-define-a-size-for-image-with-asyncimage
 
-@Observable
 class GlobalScreenManager: ObservableObject {
   var authorized: Bool = false
   var showFullscreenPlayer: Bool = false
   var showErrorAlert: Bool = false
   var errorMsg: String = ""
+  static let shared = GlobalScreenManager()
 }
 
 struct ContentView: View {
   @Environment(\.managedObjectContext) private var viewContext
-
+  let persistenceController = PersistenceController.shared
   @FetchRequest(
     sortDescriptors: [
       NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)
@@ -38,11 +32,10 @@ struct ContentView: View {
   private var items: FetchedResults<Item>
 
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
-  @StateObject private var globalScreenManager: GlobalScreenManager =
-    GlobalScreenManager()
-  @ObservedObject var libraryViewModel: LibraryViewModel = LibraryViewModel()
+  @ObservedObject var likedSongsViewModel = LikedViewModel.shared
+  @ObservedObject var globalScreenManager = GlobalScreenManager.shared
+  @ObservedObject var libraryViewModel: LibraryViewModel = LibraryViewModel.shared
   @ObservedObject var browseViewModel: BrowseViewModel = BrowseViewModel()
-  @ObservedObject var likedViewModel: LikedViewModel = LikedViewModel()
 
   var body: some View {
     ZStack {
@@ -56,20 +49,19 @@ struct ContentView: View {
           "Authorization to Apple Music failed. Please exit the app and try again later."
         )
       } else {
-        var _ = print("show de actual app")
         TabView {
           NavigationStack {
             LibraryController()
           }.tabItem {
             Label("Library", systemImage: "books.vertical.fill")
-          }.environmentObject(libraryViewModel)
+          }
 
           NavigationStack {
             LikedController()
           }
           .tabItem {
             Label("Liked", systemImage: "heart.fill")
-          }.environmentObject(likedViewModel)
+          }
 
           RecommendedViewController()
             .tabItem {
@@ -90,7 +82,6 @@ struct ContentView: View {
             ) {
               if audioPlayerViewModel.song != nil {
                 PlayerView(song: audioPlayerViewModel.song!, startNew: false)
-                  .environmentObject(globalScreenManager)
                   .transition(.move(edge: .bottom))
               }
             }
@@ -103,8 +94,6 @@ struct ContentView: View {
         }.safeAreaInset(
           edge: .bottom,
           content: {
-            var _ = print("show de fullscreen player??")
-            var _ = print(globalScreenManager.showFullscreenPlayer)
             if audioPlayerViewModel.song != nil
               && !globalScreenManager.showFullscreenPlayer
             {
@@ -129,7 +118,7 @@ struct ContentView: View {
           }
         )
       }
-    }.environmentObject(globalScreenManager)
+    }
     .task {
       do {
         try await authenticateToAppleMusic()
@@ -206,6 +195,7 @@ struct MusicInfo: View {
 }
 
 #Preview {
+  
   ContentView().environment(
     \.managedObjectContext,
     PersistenceController.preview.container.viewContext

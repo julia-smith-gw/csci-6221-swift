@@ -10,19 +10,17 @@ import MusicKit
 import SwiftUI
 import MusadoraKit
 
+@MainActor
 class BrowseViewModel: ObservableObject {
-  @EnvironmentObject var globalScreenManager: GlobalScreenManager
   @Published var errorMessage: String? = nil
   @Published var showError: Bool = false
   @Published var allSongs: [MusicKit.Song] = []
-  @Published var currentlyVisibleSongs: [MusicKit.Song] = []
   @Published var searchTerm: String = ""
   @Published var loading: Bool = false
   @Published var hasNextBatch: Bool = false
   @Published var searchActive: Bool = false
-  private var nextBatch: MusicItemCollection<MusicKit.Song>?
   @Published var genreCharts: [GenreChart] = []
-  @Published var searchSongs: MusicCatalogSearchResponse?
+  @Published var searchSongs: [MusicKit.Song] = []
   @Published var loaded: Bool = false
 
   init(){
@@ -44,7 +42,7 @@ class BrowseViewModel: ObservableObject {
     do{
       let result: MusicCatalogSearchResponse = try await searchCatalog(searchTerm: searchTerm)
       self.loaded = true
-      self.searchSongs = result
+      self.searchSongs = Array(result.songs)
     } catch AppleMusicError.networkError(let reason) {
       self.showError = true
       self.errorMessage = reason

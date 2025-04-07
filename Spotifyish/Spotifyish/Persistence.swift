@@ -10,6 +10,11 @@ import CoreData
 struct PersistenceController {
     static let shared = PersistenceController()
 
+  
+   var viewContext: NSManagedObjectContext {
+       return container.viewContext
+   }
+
     @MainActor
     static let preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
@@ -54,4 +59,5 @@ struct PersistenceController {
         })
         container.viewContext.automaticallyMergesChangesFromParent = true
     }
+
 }

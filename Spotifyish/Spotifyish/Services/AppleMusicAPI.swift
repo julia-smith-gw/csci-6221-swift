@@ -30,15 +30,32 @@ func authenticateToAppleMusic() async throws {
   }
 }
 
-func fetchLibrarySearchResult(searchTerm: String?) async throws
-  -> MusicItemCollection<MusicKit.Song>
+func fetchSongsFromLibraryByIds(ids: [MusicItemID]) async throws -> MusicItemCollection<Song>  {
+  do {
+    let response = try await MLibrary.songs(ids: ids)
+    return response
+  } catch {
+    print("fetch liked library song error")
+    throw AppleMusicError.unknown(reason: error.localizedDescription)
+  }
+}
+
+func postSongToLibrary(song: MusicKit.Song) async throws {
+  do {
+    try await MusicLibrary.shared.add(song)
+  } catch {
+    print("add error")
+    print(error)
+    throw AppleMusicError.unknown(reason: error.localizedDescription)
+  }
+}
+
+func fetchLibrarySearchResult(searchTerm: String?) async throws -> MusicLibrarySearchResponse
 {
   do {
-    let result = try await MLibrary.search(
-      for: searchTerm ?? "",
-      types: [MLibrarySearchableType.songs]
-    )
-    return result.songs
+    let request = MusicLibrarySearchRequest(term: searchTerm ?? "", types: [Song.self])
+    let response = try await request.response()
+    return response
   } catch {
     throw AppleMusicError.unknown(reason: error.localizedDescription)
   }
@@ -61,7 +78,7 @@ func searchCatalog(searchTerm: String) async throws
 
 func fetchEntireLibrary() async throws -> MusicItemCollection<MusicKit.Song> {
   do {
-    let result = try await MLibrary.songs()
+    let result = try await MLibrary.songs(limit: 20000)
     return result
   } catch {
     throw AppleMusicError.unknown(reason: error.localizedDescription)
@@ -77,18 +94,6 @@ func fetchTopGenres() async throws -> MusicItemCollection<Genre> {
   }
 }
 
-struct GenreChart: Hashable {
-  static func == (lhs: GenreChart, rhs: GenreChart) -> Bool {
-    return lhs.id == rhs.id
-  }
-  var id: UUID = UUID()
-  var genre: Genre? = nil
-  var chart: MusicCatalogChartsResponse? = nil
-  init(genre: Genre? = nil, chart: MusicCatalogChartsResponse? = nil) {
-    self.genre = genre
-    self.chart = chart
-  }
-}
 
 func fetchGenreCharts() async throws -> [GenreChart] {
   do {
@@ -101,7 +106,7 @@ func fetchGenreCharts() async throws -> [GenreChart] {
         types: .songs,
         limit: 15
       )
-      let genreChartObj = GenreChart(genre: genre, chart: genreChart)
+      let genreChartObj = GenreChart(genre: genre, chart: genreChart, songs: genreChart.songCharts.flatMap(\.items))
       genreCharts.append(genreChartObj)
     }
     return genreCharts
@@ -121,64 +126,81 @@ func fetchAllPlauylists() async throws -> MusicItemCollection<MLibraryPlaylist>
         "Network Error: \(urlError.localizedDescription) (Code: \(urlError.code))"
     )
   } catch {
-    #if DEBUG
-      print("Error fetching playlists: \(error.localizedDescription)")
-    #endif
     throw AppleMusicError.unknown(reason: error.localizedDescription)
   }
 }
 
-func fetchLikedPlaylist() async throws -> MusicItemCollection<Song> {
+func fetchPlaylistMetadataMusicKit(playlistName: String) async throws -> Playlist{
   do {
-    let result = try await MLibrary.playlists()
-    guard
-      let favoritePlaylist = result.first(where: {
-        $0.name == "Favorite Songs"
-      })
-    else {
+    let request = MusicLibrarySearchRequest(term: playlistName, types: [Playlist.self])
+    let response = try await request.response()
+    
+    guard let favoritePlaylist = response.playlists.first else {
       throw AppleMusicError.unknown(reason: "Favorite playlist not found")
     }
+    return favoritePlaylist
+  } catch {
+    print("PLATY LIST GET ERROR")
+    print(error)
+    throw error
+  }
+}
+
+func fetchPlaylistMetadata(playlistName: String) async throws -> Playlist {
+  do {
+    let request = MusicLibrarySearchRequest(term: "Favorite Songs", types: [Playlist.self])
+    let response = try await request.response()
+    print("response", response)
+    guard let favoritePlaylist = response.playlists.first(where: {
+        $0.name == "Favorite Songs"
+      }) else {
+        throw AppleMusicError.unknown(reason: "Favorite playlist not found")
+      }
+    return favoritePlaylist
+  } catch {
+    print("PLATY LIST GET ERROR")
+    print(error)
+    throw error
+  }
+}
+
+func fetchLikedPlaylist() async throws -> PlaylistInfo {
+  do {
+    let favoritePlaylist = try await fetchPlaylistMetadataMusicKit(playlistName: "amvs in my head")
 
     guard let url = URL(string: "https://api.music.apple.com/v1/me/library/playlists/\(favoritePlaylist.id)/tracks")
     else {
       throw
         AppleMusicError.unknown(reason: "Invalid URL")
     }
+    
     let fullPlaylistReq = MusicDataRequest(
       urlRequest: URLRequest(
         url: url
       )
     )
     let fullPlaylistResponse = try await fullPlaylistReq.response()
-    let decodedData = try JSONDecoder().decode(MusicItemCollection<Song>.self, from: fullPlaylistResponse.data)
-    print(try JSONDecoder().decode(MusicItemCollection<Song>.self, from: fullPlaylistResponse.data))
-    return decodedData
-
+    let decodedSongs = try JSONDecoder().decode(MusicItemCollection<Song>.self, from: fullPlaylistResponse.data)
+    let decodedPlaylist = try JSONDecoder().decode(MusicItemCollection<Playlist>.self, from: fullPlaylistResponse.data)
+    return PlaylistInfo(playlist: favoritePlaylist, songs: decodedSongs)
   } catch {
     throw error
   }
 }
 
-//func fetchLikedPlaylist() async throws -> MusicItemCollection<Playlist>.Element{
-//  do {
-//    let result = try await MLibrary.playlists()
-//    guard let favoritePlaylist = result.first(where: {$0.name == "amvs in my head"}) else {
-//      throw AppleMusicError.unknown(reason: "Favorite playlist not found")
-//    }
-//    let playlist = try await MLibrary.playlist(id: favoritePlaylist.id)
-//    for song in playlist.tracks ?? [] {
-//      print("Song: \(song.title)")
-//    }
-//    return playlist
-//  } catch let urlError as URLError {
-//    throw AppleMusicError.networkError(
-//      reason:
-//        "Network Error: \(urlError.localizedDescription) (Code: \(urlError.code))"
-//    )
-//  } catch {
-//    throw AppleMusicError.unknown(reason: error.localizedDescription)
-//  }
-//}
+func addSongToPlaylist(songs: MusicItemCollection<Song>, playlist: Playlist) async throws -> Playlist {
+  do {
+    
+    let updatedPlaylist = try await MusicLibrary.shared.add(songs.first!, to: playlist)
+    return updatedPlaylist
+    print("WHAT IS IN THIS ACTUALLY")
+    print(updatedPlaylist)
+
+  } catch {
+      print("Error adding songs to playlist: \(error)")
+      throw error
+  }
+}
 
 func fetchSongStreamingInfo(song: MusicKit.Song) async throws
   -> MusicItemCollection<MusicKit.Song>.Element
