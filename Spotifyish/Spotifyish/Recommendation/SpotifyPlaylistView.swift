@@ -6,13 +6,17 @@
 //
 
 import SwiftUI
+import Foundation
 
 struct SpotifyPlaylistView: View {
+    var title: String
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        ZStack {
+            Color.black.ignoresSafeArea()
+            Text("Playlist: \(title)")
+                .foregroundColor(.white)
+                .font(.largeTitle.bold())
+        }
     }
-}
-
-#Preview {
-    SpotifyPlaylistView()
 }

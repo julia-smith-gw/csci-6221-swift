@@ -8,11 +8,42 @@
 import SwiftUI
 
 struct PlaylistView: View {
+    var mood: Mood // <- This is your renamed Mood to avoid ambiguity
+
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        ZStack {
+            Color.spotifyBlack.ignoresSafeArea()
+
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    // ✅ You pass the mood values here
+                    PlaylistHeaderCell(
+                        height: 250,
+                        title: mood.title,
+                        subtitle: mood.description,
+                        imageName: mood.image
+                    )
+
+                    PlaylistDescriptionCell(
+                        descriptionText: mood.description,
+                        userName: "Swift",
+                        subheadline: mood.category,
+                        onAddToPlaylistPressed: nil,
+                        onDownloadPressed: nil,
+                        onSharedPressed: nil,
+                        onEllipsisPressed: nil,
+                        onShufflePressed: nil,
+                        onPlayPressed: nil
+                    )
+                    .padding(.horizontal, 16)
+                }
+            }
+            .scrollIndicators(.hidden)
+        }
     }
 }
 
 #Preview {
-    PlaylistView()
+    PlaylistView(mood: Mood.mock)
 }
+
