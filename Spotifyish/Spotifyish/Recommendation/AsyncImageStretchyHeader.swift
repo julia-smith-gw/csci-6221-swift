@@ -7,12 +7,25 @@
 
 import SwiftUI
 
+import SwiftUI
+
 struct AsyncImageStretchyHeader: View {
+    var imageName: String
+
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        GeometryReader { geo in
+            Image(imageName)
+                .resizable()
+                .scaledToFill()
+                .frame(
+                    width: geo.size.width,
+                    height: geo.frame(in: .global).minY > 0
+                        ? geo.size.height + geo.frame(in: .global).minY
+                        : geo.size.height
+                )
+                .clipped()
+                .offset(y: geo.frame(in: .global).minY > 0 ? -geo.frame(in: .global).minY : 0)
+        }
     }
 }
 
-#Preview {
-    AsyncImageStretchyHeader()
-}

@@ -22,13 +22,13 @@ struct PlaylistDescriptionCell: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(descriptionText)
-                .foregroundStyle(.spotifyLightGray)
+                .foregroundStyle(.spotifyGray)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             madeForYouSection
             
             Text(subheadline)
-                .foregroundColor(.spotifyLightGray)
+                .foregroundColor(.spotifyGray)
             
             buttonsRow
         }
@@ -45,7 +45,7 @@ struct PlaylistDescriptionCell: View {
             
             Text("Made for " + userName)
                 .bold()
-                .foregroundStyle(.spotifyWhite)
+                .foregroundStyle(.spotifyDarkGray)
                 
         }
         
@@ -56,26 +56,26 @@ struct PlaylistDescriptionCell: View {
             HStack(spacing: 0) {
                 Image(systemName: "plus.circle")
                     .padding(8)
-                    .background(Color.black.opacity(0.001))
+                    .background(Color.spotifyDarkGray.opacity(0.001))
                     .onTapGesture {
                         onAddToPlaylistPressed?()
                     }
                 Image(systemName: "arrow.down.circle")
                     .padding(8)
-                    .background(Color.black.opacity(0.001))
+                    .background(Color.spotifyDarkGray.opacity(0.001))
                     .onTapGesture {
                         onDownloadPressed?()
                     }
 
                 Image(systemName: "square.and.arrow.up")
                     .padding(8)
-                    .background(Color.black.opacity(0.001))
+                    .background(Color.spotifyDarkGray.opacity(0.001))
                     .onTapGesture {
                         onSharedPressed?()
                     }
                 Image(systemName: "ellipsis")
                     .padding(8)
-                    .background(Color.black.opacity(0.001))
+                    .background(Color.spotifyDarkGray.opacity(0.001))
                     .onTapGesture {
                         onEllipsisPressed?()
                     }
@@ -86,13 +86,13 @@ struct PlaylistDescriptionCell: View {
             HStack(spacing: 8) {
                 Image(systemName: "shuffle")
                     .font(.system(size: 24))
-                    .background(Color.black.opacity(0.001))
+                    .background(Color.spotifyDarkGray.opacity(0.001))
                     .onTapGesture {
                         onShufflePressed?()
                     }
                 Image(systemName: "play.circle.fill")
                     .font(.system(size: 46))
-                    .background(Color.black.opacity(0.001))
+                    .background(Color.spotifyDarkGray.opacity(0.001))
                     .onTapGesture {
                         onPlayPressed?()
                     }

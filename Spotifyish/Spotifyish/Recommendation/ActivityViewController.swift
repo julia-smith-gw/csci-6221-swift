@@ -6,13 +6,14 @@
 //
 
 import SwiftUI
+import UIKit
 
-struct ActivityViewController: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+struct ActivityViewController: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
     }
-}
 
-#Preview {
-    ActivityViewController()
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

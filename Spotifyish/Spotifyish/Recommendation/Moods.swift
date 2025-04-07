@@ -8,40 +8,41 @@
 import SwiftUI
 
 struct Moods: View {
-    var imageName: String = Constants.randomImage
-    var title: String = "Sleep"
-    
+    let imageName: String
+    let title: String
+
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            ImageLoaderView(urlString: imageName)
-                .aspectRatio(contentMode: .fill)
+            // Background Image
+            Image(imageName)
+                .resizable()
+                .scaledToFill()
                 .frame(height: 200)
-                .frame(maxWidth: .infinity)
-                .background(Color.spotifyGray.opacity(0.3))
                 .clipped()
-            
-            // Gradient overlay
+
+            // Gradient for readability
             LinearGradient(
-                colors: [Color.black.opacity(0.6), .clear],
+                gradient: Gradient(colors: [Color.black.opacity(0.6), .clear]),
                 startPoint: .bottom,
                 endPoint: .top
             )
             .frame(height: 80)
-            .frame(maxWidth: .infinity, alignment: .bottom)
+            .frame(maxWidth: .infinity)
             .clipped()
 
-            // Title text
+            // Title Text
             Text(title)
                 .font(.title2.bold())
                 .foregroundColor(.white)
-                .padding(.horizontal)
-                .padding(.bottom, 16)
+                .padding([.leading, .bottom], 16)
+                .shadow(radius: 3)
         }
         .frame(height: 200)
         .cornerRadius(12)
-        .padding(.horizontal)
+        .clipped()
     }
 }
+
 
 
 

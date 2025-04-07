@@ -10,11 +10,13 @@ import SwiftUI
 
 struct RecommendationScreen: View {
     @State private var moods: [Mood] = []
+    
+    var shadowColor: Color = .white.opacity(0.8)
 
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.spotifyBlack.ignoresSafeArea()
+                Color.white.ignoresSafeArea()
 
                 ScrollView {
                     LazyVStack(spacing: 12, pinnedViews: [.sectionHeaders]) {
@@ -23,8 +25,6 @@ struct RecommendationScreen: View {
                                 ForEach(moods) { mood in
                                     NavigationLink(destination: PlaylistView(mood: mood)) {
                                         Moods(imageName: mood.image, title: mood.title)
-                                            .frame(height: 200)
-                                            .cornerRadius(12)
                                             .padding(.horizontal)
                                     }
                                 }
@@ -48,32 +48,30 @@ struct RecommendationScreen: View {
         do {
             moods = try await DatabaseHelper().getMoods()
         } catch {
-            // Fallback sample data using Mood (not AppMood!)
+            // Fallback sample data using Mood
             moods = [
-                Mood(id: 1, title: "Sleep", description: "Calm tracks for better sleep", image: "Sleep", category: "Relaxation"),
-                Mood(id: 2, title: "Study", description: "Focus-enhancing instrumental", image: "Study", category: "Concentration"),
-                Mood(id: 3, title: "Relax", description: "Chill and lo-fi vibes", image: "Relax", category: "Mood"),
-                Mood(id: 4, title: "Pop", description: "Fresh pop hits", image: "Pop", category: "Genre"),
-                Mood(id: 5, title: "Indie", description: "Handpicked indie gems", image: "Indie", category: "Alternative")
+                Mood(id: 1, title: "Country", description: "Heartfelt stories with acoustic charm.", image: "Country", category: "Country"),
+                Mood(id: 2, title: "Dance", description: "Energetic, rhythmic, upbeat, vibrant, fun.", image: "Dance", category: "Party"),
+                Mood(id: 3, title: "Rock", description: "Gritty, bold, energetic, rebellious, electric.", image: "Rock", category: "Mood"),
+                Mood(id: 4, title: "Pop", description: "Fresh pop hits", image: "Pop", category: "Popular"),
+                Mood(id: 5, title: "Jazz", description: "Handpicked jazz gems", image: "Jazz", category: "Alternative")
             ]
         }
     }
 
     private var header: some View {
         ZStack {
-            Color.spotifyBlack.ignoresSafeArea()
-                .background(.spotifyBlack)
+            Color.white.ignoresSafeArea()
+                .background(.white)
             Text("Recommendations For You")
                 .font(.title2.bold())
-                .foregroundColor(.spotifyWhite)
+                .foregroundColor(.spotifyBlack)
                 .padding(.vertical, 12)
         }
         .frame(maxWidth: .infinity)
         .background(.ultraThinMaterial)
     }
 }
-
-
 
 #Preview {
     RecommendationScreen()

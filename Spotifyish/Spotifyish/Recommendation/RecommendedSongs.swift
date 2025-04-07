@@ -6,3 +6,12 @@
 //
 
 import Foundation
+
+struct Songs: Identifiable {
+    let id = UUID()
+    let name: String
+    let genre: String
+    let artistName: String
+    let imageName: String
+    let audioFileName: String
+}

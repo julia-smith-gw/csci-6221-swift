@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct PlaylistHeaderCell: View {
     let height: CGFloat
     let title: String
@@ -21,31 +19,31 @@ struct PlaylistHeaderCell: View {
                 .resizable()
                 .scaledToFill()
                 .frame(height: height)
-                .frame(maxWidth: .infinity)
                 .clipped()
 
             LinearGradient(
-                gradient: Gradient(colors: [.clear, .black.opacity(0.8)]),
-                startPoint: .top,
-                endPoint: .bottom
+                gradient: Gradient(colors: [Color.black.opacity(0.6), .clear]),
+                startPoint: .bottom,
+                endPoint: .top
             )
             .frame(height: height)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.largeTitle).bold()
+                    .font(.largeTitle.bold())
                     .foregroundColor(.white)
+                    .shadow(radius: 4)
 
                 Text(subtitle)
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white.opacity(0.8))
             }
             .padding()
         }
-        .cornerRadius(12)
-        .shadow(radius: 10)
+        .frame(height: height)
     }
 }
+
 
 
 #Preview {
