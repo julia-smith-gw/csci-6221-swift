@@ -10,6 +10,8 @@ import SwiftUI
 struct PlaylistView: View {
     var mood: Mood
 
+    @StateObject private var playerManager = PlayerManager()
+
     let allSongs: [Songs] = [
         Songs(name: "Tequilla", genre: "Country", artistName: "Dan + Shay", imageName: "cover5", audioFileName: "Song5"),
         Songs(name: "Stargazing", genre: "Pop", artistName: "Myles Smith", imageName: "cover6", audioFileName: "Song6"),
@@ -62,7 +64,8 @@ struct PlaylistView: View {
                             .padding()
                     } else {
                         ForEach(filteredSongs) { song in
-                            SongRow(songs: song)
+                            SongRow(song: song)
+                                .environmentObject(playerManager)
                                 .padding(.horizontal)
                         }
                     }

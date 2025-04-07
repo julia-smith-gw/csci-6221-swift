@@ -8,48 +8,39 @@
 import SwiftUI
 
 struct SongRow: View {
-    var songs: Songs
-
-    @State private var isPlaying = false
+    let song: Songs
+    @EnvironmentObject var playerManager: PlayerManager
 
     var body: some View {
         HStack(spacing: 16) {
-            Image(songs.imageName)
+            Image(song.imageName)
                 .resizable()
-                .scaledToFill()
                 .frame(width: 60, height: 60)
-                .clipped()
                 .cornerRadius(8)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(songs.name)
+            VStack(alignment: .leading) {
+                Text(song.name)
                     .font(.headline)
-
-                Text(songs.artistName)
+                Text(song.artistName)
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
 
             Spacer()
 
-            Button(action: togglePlay) {
-                Image(systemName: isPlaying ? "stop.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 30))
+            Button(action: {
+                if playerManager.isPlaying(song: song) {
+                    playerManager.stop()
+                } else {
+                    playerManager.play(song: song)
+                }
+            }) {
+                Image(systemName: playerManager.isPlaying(song: song) ? "pause.circle.fill" : "play.circle.fill")
+                    .resizable()
+                    .frame(width: 36, height: 36)
                     .foregroundColor(.spotifyGreen)
             }
         }
         .padding(.vertical, 8)
-    }
-
-    func togglePlay() {
-        if isPlaying {
-            AudioManager.shared.stop()
-            isPlaying = false
-        } else {
-            AudioManager.shared.play(audioFileName: songs.audioFileName)
-            isPlaying = true
-        }
-
-        // Optional: If you want to notify other rows to update, you'll need a more global state solution like ObservableObject or @EnvironmentObject.
     }
 }
