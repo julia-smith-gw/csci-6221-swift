@@ -10,11 +10,6 @@ import SwiftUI
 let formatter = DateComponentsFormatter()
 
 struct PlayerView: View {
-  var song: MusicKit.Song
-  var songIndex: Int?
-  var playerQueue: [MusicKit.Song]? = []
-  var startNew: Bool = false
-  var fromLibrary: Bool = false
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
   @ObservedObject var globalScreenManager = GlobalScreenManager.shared
   @ObservedObject var libraryViewModel = LibraryViewModel.shared
@@ -57,6 +52,7 @@ struct PlayerView: View {
           action: audioPlayerViewModel.playOrPause
         ).labelStyle(.iconOnly)
           .imageScale(.large)
+          .disabled(audioPlayerViewModel.songLoading)
 
         AsyncButton(
           systemImageName: "forward.fill",
@@ -64,8 +60,9 @@ struct PlayerView: View {
         ).labelStyle(.iconOnly)
           .imageScale(.large)
         
+        
         if (audioPlayerViewModel.song != nil) {
-          if (fromLibrary) {
+          if (audioPlayerViewModel.fromLibrary) {
             LikeButton(song:audioPlayerViewModel.song!).padding(.leading, 5)
           } else {
             AddSongToLibraryButton(song:audioPlayerViewModel.song!).padding(.leading, 5).environmentObject(libraryViewModel)
@@ -108,25 +105,6 @@ struct PlayerView: View {
         }.padding()
 
       }.padding()
-        .onAppear {
-          globalScreenManager.showFullscreenPlayer = true
-          if startNew
-            && (audioPlayerViewModel.song == nil
-              || (audioPlayerViewModel.song != nil
-                && (song.title != audioPlayerViewModel.song?.title
-                  && song.artistName != audioPlayerViewModel.song?.artistName)))
-          {
-
-            Task {
-              //await audioPlayerViewModel.loadNewQueue(playlist: playerQueue ?? [])
-              await audioPlayerViewModel.changeSong(
-                song: song,
-                songIndex: songIndex,
-                playlist: playerQueue ?? []
-              )
-            }
-          }
-        }
       Spacer()
     }.frame(height: UIScreen.main.bounds.height)
       .alert(isPresented: $audioPlayerViewModel.showSongError) {
@@ -135,8 +113,6 @@ struct PlayerView: View {
           message: Text(audioPlayerViewModel.songError ?? "Unknown error"),
           dismissButton: .default(Text("OK"))
         )
-      }.onDisappear {
-        globalScreenManager.showFullscreenPlayer = false
       }
   }
 }

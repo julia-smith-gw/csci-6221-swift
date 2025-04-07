@@ -22,32 +22,33 @@ struct SongCard: View {
         } else {
           LikeButton(song: self.song)
         }
-        AsyncImage(url: song.artwork?.url(width: 90, height: 90)) { result in
-            result.image?
-                .resizable()
-                .scaledToFill()
-            }
-            .frame(width: 90, height: 90)
-            .foregroundStyle(.secondary)
-            .padding(.leading, 10)
+        HStack {
+          AsyncImage(url: song.artwork?.url(width: 90, height: 90)) { result in
+              result.image?
+                  .resizable()
+                  .scaledToFill()
+              }
+              .frame(width: 90, height: 90)
+              .foregroundStyle(.secondary)
+              .padding(.leading, 10)
 
-        Spacer()
-        VStack( alignment: .trailing, spacing: 1) {
-          Text(self.song.title)
-            .font(.headline.bold())
-            .fixedSize(horizontal: false, vertical: true)
-            .multilineTextAlignment(.trailing)
-            .lineLimit(nil)
+          Spacer()
+          VStack( alignment: .trailing, spacing: 1) {
+            Text(self.song.title)
+              .font(.headline.bold())
+              .fixedSize(horizontal: false, vertical: true)
+              .multilineTextAlignment(.trailing)
+              .lineLimit(nil)
 
-          Text(self.song.artistName)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
-            .multilineTextAlignment(.trailing)
-            .lineLimit(nil)
-        }.frame(maxWidth: UIScreen.main.bounds.size.width - 120,  alignment: .trailing)
-          .padding(.leading, 35)
-          .onTapGesture(perform: tapAction)
+            Text(self.song.artistName)
+              .font(.footnote)
+              .foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
+              .multilineTextAlignment(.trailing)
+              .lineLimit(nil)
+          }.frame(maxWidth: UIScreen.main.bounds.size.width - 120,  alignment: .trailing)
+            .padding(.leading, 35)
+        }.onTapGesture(perform: tapAction)
       }.frame(maxWidth: .infinity, minHeight:90, maxHeight: 300)
   }
 }

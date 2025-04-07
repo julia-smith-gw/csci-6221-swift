@@ -1,6 +1,6 @@
 import CoreData
-import MusicKit
 import Foundation
+import MusicKit
 import SwiftUI
 
 //https://stackoverflow.com/questions/73488386/swiftui-animation-from-screen-bottom-not-working-properly
@@ -11,6 +11,7 @@ import SwiftUI
 //https://www.swiftbysundell.com/articles/swiftui-state-management-guide/
 //https://www.reddit.com/r/swift/comments/gb8742/reasoning_behind_observableobjects/
 //https://stackoverflow.com/questions/77829110/how-define-a-size-for-image-with-asyncimage
+//https://www.swiftyplace.com/blog/swiftui-sheets-modals-bottom-sheets-fullscreen-presentation-in-ios
 
 class GlobalScreenManager: ObservableObject {
   var authorized: Bool = false
@@ -34,7 +35,8 @@ struct ContentView: View {
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
   @ObservedObject var likedSongsViewModel = LikedViewModel.shared
   @ObservedObject var globalScreenManager = GlobalScreenManager.shared
-  @ObservedObject var libraryViewModel: LibraryViewModel = LibraryViewModel.shared
+  @ObservedObject var libraryViewModel: LibraryViewModel = LibraryViewModel
+    .shared
   @ObservedObject var browseViewModel: BrowseViewModel = BrowseViewModel()
 
   var body: some View {
@@ -75,23 +77,17 @@ struct ContentView: View {
           }
           .environmentObject(browseViewModel)
 
-          NavigationStack {
-            VStack{
-            } .navigationDestination(
-              isPresented: $globalScreenManager.showFullscreenPlayer
-            ) {
-              if audioPlayerViewModel.song != nil {
-                PlayerView(song: audioPlayerViewModel.song!, startNew: false)
-                  .transition(.move(edge: .bottom))
-              }
-            }
-          }
-          
           SettingsViewController()
             .tabItem {
               Label("Settings", systemImage: "gearshape.fill")
             }
-        }.safeAreaInset(
+        }.sheet(isPresented: $globalScreenManager.showFullscreenPlayer) {
+          print("Sheet dismissed!")
+        } content: {
+          PlayerView()
+            .transition(.move(edge: .bottom))
+        }
+        .safeAreaInset(
           edge: .bottom,
           content: {
             if audioPlayerViewModel.song != nil
@@ -101,11 +97,11 @@ struct ContentView: View {
                 Rectangle()
                   .fill(.ultraThickMaterial)
                   .overlay {
-                      MusicInfo()
-                }
+                    MusicInfo()
+                  }
               }
               .gesture(
-                TapGesture(count: 1)
+                TapGesture(count: 2)
                   .onEnded {
                     withAnimation {
                       globalScreenManager.showFullscreenPlayer = true
@@ -180,6 +176,7 @@ struct MusicInfo: View {
                 ? "pause.fill" : "play.fill",
               action: audioPlayerViewModel.playOrPause
             ).imageScale(.large)
+              .disabled(audioPlayerViewModel.songLoading)
 
             AsyncButton(
               systemImageName: "forward.fill",
@@ -195,7 +192,7 @@ struct MusicInfo: View {
 }
 
 #Preview {
-  
+
   ContentView().environment(
     \.managedObjectContext,
     PersistenceController.preview.container.viewContext

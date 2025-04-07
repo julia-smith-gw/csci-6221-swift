@@ -7,6 +7,8 @@ import MusicKit
 //
 import SwiftUI
 
+//https://stackoverflow.com/questions/56550713/how-can-i-run-an-action-when-a-state-changes
+
 struct LikeButton: View {
   @ObservedObject var likedViewModel = LikedViewModel.shared
   @State var isSongLiked: Bool = false
@@ -18,17 +20,18 @@ struct LikeButton: View {
       action: {
         if !isSongLiked {
           await likedViewModel.addSongToLiked(song: song)
-          self.isSongLiked.toggle()
         } else {
           await likedViewModel.removeSongFromLiked(song: song)
-          self.isSongLiked.toggle()
         }
       }
     ).labelStyle(.iconOnly)
       .imageScale(.large)
       .onAppear {
         self.isSongLiked = self.likedViewModel.getIsSongLiked(song: song)
-      }
+      }.onChange(
+        of: likedViewModel.songsMetadata,
+      { self.isSongLiked = self.likedViewModel.getIsSongLiked(song: song) }
+      )
   }
 
   var body: some View {

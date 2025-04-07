@@ -22,6 +22,7 @@ struct SongList: View {
   var songs: [MusicKit.Song]
   @State private var selectedSong: MusicKit.Song?
   @State private var selectedSongIndex: Int?
+  @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
   @StateObject var selectionData: SelectionData = SelectionData()
   var fromLibrary: Bool = false
   var body: some View {
@@ -30,7 +31,20 @@ struct SongList: View {
         SongCard(
           song: song,
           tapAction: {
-            selectionData.selection = SongSelection(song: song, index: index)
+            if audioPlayerViewModel.song == nil
+              || (audioPlayerViewModel.song != nil
+                && (song.title != audioPlayerViewModel.song?.title
+                  && song.artistName != audioPlayerViewModel.song?.artistName))
+            {
+              Task {
+                await audioPlayerViewModel.changeSong(
+                  song: song,
+                  songIndex: index,
+                  fromLibrary: fromLibrary,
+                  playlist: songs
+                )
+              }
+            }
           },
           fromLibrary: fromLibrary
         )
@@ -41,15 +55,5 @@ struct SongList: View {
       EdgeInsets(top: 0, leading: 0, bottom: 100, trailing: 0)
     )
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .navigationDestination(item: $selectionData.selection) { selection in
-
-      PlayerView(
-        song: selection.song,
-        songIndex: selection.index,
-        playerQueue: songs,
-        startNew: true,
-        fromLibrary: fromLibrary
-      )
-    }
   }
 }

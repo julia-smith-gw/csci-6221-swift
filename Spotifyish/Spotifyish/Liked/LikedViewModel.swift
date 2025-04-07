@@ -7,13 +7,12 @@
 
 import CoreData
 import Foundation
-//https://exploringswift.com/blog/Implementing-Core-Data-in-SwiftUI-using-MVVM-architecture
-//https://bugfender.com/blog/ios-core-data/
 import MusicKit
 import SwiftUI
 
-@MainActor 
-// Make a global shared instance so all views can access it
+//https://exploringswift.com/blog/Implementing-Core-Data-in-SwiftUI-using-MVVM-architecture
+//https://bugfender.com/blog/ios-core-data/
+@MainActor
 class LikedViewModel: ObservableObject {
   private let viewContext = PersistenceController.shared.viewContext
   @Published var errorMessage: String? = nil
@@ -90,20 +89,23 @@ class LikedViewModel: ObservableObject {
     await self.fetchLikedSongs()
   }
 
-  func removeSongFromLiked(song: Song) {
+  func removeSongFromLiked(song: Song) async {
     songsMetadata.filter {
       $0.title == song.title && $0.artistName == song.artistName
     }.forEach {
       viewContext.delete($0)
     }
     saveToContext()
+    await self.fetchLikedSongs()
   }
 
   func saveToContext() {
     do {
       try viewContext.save()
     } catch {
-      print("Error saving")
+      self.errorMessage = error.localizedDescription
+      self.showError = true
+      self.loaded = false
     }
   }
 
@@ -112,10 +114,8 @@ class LikedViewModel: ObservableObject {
       $0.title == song.title && $0.artistName == song.artistName
     }) {
       return true
-      // found
     } else {
       return false
     }
   }
-
 }

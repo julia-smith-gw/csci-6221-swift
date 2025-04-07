@@ -35,6 +35,7 @@ import SwiftUI
 
 class AudioPlayerViewModel: ObservableObject {
   static let shared = AudioPlayerViewModel()
+  @Published var fromLibrary: Bool = false
   @Published var song: MusicKit.Song?
   @Published var songLoading: Bool = false
   @Published var songError: String?
@@ -48,7 +49,7 @@ class AudioPlayerViewModel: ObservableObject {
   private var cancellables: Set<AnyCancellable> = []
   private var queueObserver: AnyCancellable?
   private var stateObserver: AnyCancellable?
-  private var queue = ApplicationMusicPlayer.Queue([])
+  private var originalLibrarySong: MusicKit.Song?
   let audioPlayer = ApplicationMusicPlayer.shared
   
   private func addPeriodicTimeObserver() {
@@ -66,35 +67,34 @@ class AudioPlayerViewModel: ObservableObject {
   }
 
   init() {
-    if (stateObserver == nil) {
-      stateObserver = ApplicationMusicPlayer.shared.state.objectWillChange
-       .sink { [weak self] _ in
-         guard let self = self else { return }
-         
-         let playbackStatus = ApplicationMusicPlayer.shared.state.playbackStatus
-         DispatchQueue.main.asyncAfter(
-           deadline: .now() + 0.25,
-             execute: {
-             self.isPlaying = playbackStatus == .playing
-             if (self.isPlaying){
-               self.addPeriodicTimeObserver()
-             } else {
-               self.removePeriodicTimeObserver()
-             }
-           })
-       }
-    }
+//    if (stateObserver == nil) {
+//      stateObserver = ApplicationMusicPlayer.shared.state.objectWillChange
+//       .sink { [weak self] _ in
+//         guard let self = self else { return }
+//         
+//         let playbackStatus = ApplicationMusicPlayer.shared.state.playbackStatus
+//         DispatchQueue.main.async(
+//             execute: {
+//             self.isPlaying = playbackStatus == .playing
+//             if (self.isPlaying){
+//               self.addPeriodicTimeObserver()
+//             } else {
+//               self.removePeriodicTimeObserver()
+//             }
+//           })
+//       }
+//    }
    
     if (queueObserver == nil) {
       queueObserver = ApplicationMusicPlayer.shared.queue.objectWillChange
         .sink { [weak self] _ in
           guard let self = self else { return }
-            self.songLoading=true
             DispatchQueue.main.asyncAfter(
-              deadline: .now() + 0.25,
+              deadline: .now()+0.1,
               execute: {
                 if case let .song(song) = ApplicationMusicPlayer.shared.queue.currentEntry?.item {
-                  self.songLoading=false
+                  print("SET SONG")
+                  print(song)
                   self.song = song
                   self.duration = song.duration ?? 0.0
                   self.currentTime = 0.0
@@ -110,30 +110,19 @@ class AudioPlayerViewModel: ObservableObject {
       for: playlist,
       startingAt: playlist[songIndex]
     )
-  
-    self.queue = newQueue
     self.audioPlayer.queue = newQueue
-  }
-
-  func skipToSong(songIndex: Int) {
-    let songsAfterEntry = audioPlayer.queue.entries[songIndex...]
-    guard !songsAfterEntry.isEmpty else { return }
-    self.audioPlayer.queue = ApplicationMusicPlayer.Queue(songsAfterEntry)
   }
 
   func changeSong(
     song: MusicKit.Song,
-    songIndex: Int?,
+    songIndex: Int,
+    fromLibrary: Bool = false,
     playlist: [MusicKit.Song]
   ) async {
-    loadNewQueue(playlist: playlist, songIndex: songIndex ?? 0)
+    loadNewQueue(playlist: playlist, songIndex: songIndex)
     do {
-      self.song=song
-      if songIndex != nil {
-        loadNewQueue(playlist: playlist, songIndex: songIndex ?? 0)
-      } else {
-        self.audioPlayer.queue = [song]
-      }
+      self.fromLibrary = fromLibrary
+      self.originalLibrarySong = song
       try await self.audioPlayer.prepareToPlay()
       await self.playOrPause()
     } catch {
@@ -144,7 +133,11 @@ class AudioPlayerViewModel: ObservableObject {
   }
 
   func clearSong() {
-    self.audioPlayer.pause()
+    self.audioPlayer.stop()
+    self.song = nil
+    self.currentTime = 0.0
+    self.duration = 0.0
+    removePeriodicTimeObserver()
   }
 
   func skipForwards() async {
@@ -176,14 +169,16 @@ class AudioPlayerViewModel: ObservableObject {
     }
     audioPlayer.playbackTime = newTime
   }
-
+  
   func playOrPause() async {
     if self.audioPlayer.state.playbackStatus == .playing {
       self.audioPlayer.pause()
+      self.isPlaying = false
       removePeriodicTimeObserver()
     } else {
       do {
         try await self.audioPlayer.play()
+        self.isPlaying = true
         addPeriodicTimeObserver()
       } catch {
         self.showSongError = true
