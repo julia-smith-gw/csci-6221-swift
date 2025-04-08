@@ -8,24 +8,51 @@ class WelcomePageController: UIViewController {
     private let signInButton: UIButton = {
         let button = UIButton()
         button.backgroundColor = .white
+        
+        button.frame = CGRect(x: 100, y: 200, width: 150, height: 40)
+                
+        // Customize the button's appearance to make it pill-shaped
+        button.layer.cornerRadius = button.frame.size.height / 2
+        
         button.setTitle("Sign In", for: .normal)
         button.setTitleColor(.blue, for: .normal)
+        
         return button
         
     }()
     /// Title label displaying the app name.
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Spotifyish"
-        label.font = UIFont.systemFont(ofSize: 36, weight: .semibold)
+        label.text = "Spotify(ish)"
+        label.font = UIFont(name: "Zapfino", size: 25)
+        label.font = UIFont.systemFont(ofSize: 50, weight: .semibold)
         label.textColor = .white
         label.textAlignment = .center
+        
+        
+        
+        // Extra Styling by SHREEYA:
+        
+        label.layer.shadowColor = UIColor.black.cgColor
+                label.layer.shadowOffset = CGSize(width: 3, height: 3)
+                label.layer.shadowOpacity = 0.7
+                label.layer.shadowRadius = 5
+                
+                // Add glow effect (light blur)
+                label.layer.masksToBounds = false
+                label.layer.shadowRadius = 10
+                label.layer.shadowOpacity = 0.9
+        
+        
         return label
     }()
     /// ImageView that displays the Spotify logo in the center of the screen.
     private let logoImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "spotify_logo")
+        
+       
+        
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         return imageView
@@ -35,23 +62,36 @@ class WelcomePageController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Spotifyish"
-        view.backgroundColor = .systemGreen
+        //view.backgroundColor = .systemGreen
+        
+        let gradient = CAGradientLayer()
+                gradient.colors = [UIColor.purple.withAlphaComponent(0.45).cgColor, UIColor.blue.withAlphaComponent(0.45).cgColor]
+                gradient.locations = [0.0, 1.0]
+                gradient.startPoint = CGPoint(x: 0.0, y: 0.0)
+                gradient.endPoint = CGPoint(x: 0.0, y: 1.0)
+                gradient.frame = CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: self.view.frame.size.height)
+        
+                self.view.layer.insertSublayer(gradient, at: 1) // This will not cover the information on top of the background (the background should lay behind the content of the page)
+        
+        
+        
         view.addSubview(signInButton)
         view.addSubview(titleLabel)
         view.addSubview(logoImageView)
         signInButton.addTarget(self, action: #selector(didTapSignIn), for: .touchUpInside)
 
         
-        if let users = UserDefaults.standard.dictionary(forKey: "users") as? [String: String] {
-            print("Saved users: \(users)")
-            
-            for family in UIFont.familyNames.sorted() {
-                for name in UIFont.fontNames(forFamilyName: family) {
-                    print("    ↪︎ \(name)")
-                }
-            }
-
-        }
+//        if let users = UserDefaults.standard.dictionary(forKey: "users") as? [String: String] {
+//            print("Saved users: \(users)")
+//
+//            for family in UIFont.familyNames.sorted() {
+//                print("📁 Font Family: \(family)")
+//                for name in UIFont.fontNames(forFamilyName: family) {
+//                    print("    ↪︎ \(name)")
+//                }
+//            }
+//
+//        }
     }
     /// Lays out subviews (title, logo, sign-in button) with fixed frames.
     override func viewDidLayoutSubviews() {
