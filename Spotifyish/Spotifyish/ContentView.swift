@@ -12,7 +12,7 @@ import SwiftUI
 //https://www.reddit.com/r/swift/comments/gb8742/reasoning_behind_observableobjects/
 //https://stackoverflow.com/questions/77829110/how-define-a-size-for-image-with-asyncimage
 //https://www.swiftyplace.com/blog/swiftui-sheets-modals-bottom-sheets-fullscreen-presentation-in-ios
-
+//https://stackoverflow.com/questions/65784294/how-to-detect-if-keyboard-is-present-in-swiftui
 class GlobalScreenManager: ObservableObject {
   var authorized: Bool = false
   var showFullscreenPlayer: Bool = false
@@ -38,6 +38,8 @@ struct ContentView: View {
   @ObservedObject var libraryViewModel: LibraryViewModel = LibraryViewModel
     .shared
   @ObservedObject var browseViewModel: BrowseViewModel = BrowseViewModel()
+  @ObservedObject var recommendationViewModel: RecommendationViewModel =
+    RecommendationViewModel()
 
   var body: some View {
     ZStack {
@@ -65,10 +67,14 @@ struct ContentView: View {
             Label("Liked", systemImage: "heart.fill")
           }
 
-          RecommendedViewController()
-            .tabItem {
-              Label("Recommended", systemImage: "house.fill")
-            }
+          NavigationStack {
+            RecommendationViewController().environmentObject(
+              recommendationViewModel
+            )
+          }
+          .tabItem {
+            Label("Recommended", systemImage: "house.fill")
+          }
 
           NavigationStack {
             BrowseViewController()
@@ -89,6 +95,7 @@ struct ContentView: View {
         }
         .safeAreaInset(
           edge: .bottom,
+          spacing: 0,
           content: {
             if audioPlayerViewModel.song != nil
               && !globalScreenManager.showFullscreenPlayer
@@ -176,7 +183,6 @@ struct MusicInfo: View {
                 ? "pause.fill" : "play.fill",
               action: audioPlayerViewModel.playOrPause
             ).imageScale(.large)
-              .disabled(audioPlayerViewModel.songLoading)
 
             AsyncButton(
               systemImageName: "forward.fill",

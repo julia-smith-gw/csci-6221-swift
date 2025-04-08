@@ -22,13 +22,6 @@ struct BrowseViewController: View {
     SongList(songs: browseViewModel.searchSongs)
       .scrollDismissesKeyboard(.immediately)
       .scrollContentBackground(.hidden)
-      .alert(isPresented: $browseViewModel.showError) {
-        Alert(
-          title: Text("Error"),
-          message: Text(browseViewModel.errorMessage ?? "Unknown error"),
-          dismissButton: .default(Text("OK"))
-        )
-      }
   }
 
   var body: some View {
@@ -42,7 +35,13 @@ struct BrowseViewController: View {
       }
     }.safeAreaPadding(
       EdgeInsets(top: 0, leading: 0, bottom: 100, trailing: 0)
-    )
+    ) .alert(isPresented: $browseViewModel.showError) {
+      Alert(
+        title: Text("Error"),
+        message: Text(browseViewModel.errorMessage ?? "Unknown error"),
+        dismissButton: .default(Text("OK"))
+      )
+    }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .navigationTitle("Browse Music")
     .safeAreaInset(
@@ -88,12 +87,5 @@ struct BrowseViewController: View {
     .safeAreaPadding(
       EdgeInsets(top: 0, leading: 0, bottom: 100, trailing: 0)
     )
-    .alert(isPresented: $browseViewModel.showError) {
-      Alert(
-        title: Text("Error"),
-        message: Text(browseViewModel.errorMessage ?? "Unknown error"),
-        dismissButton: .default(Text("OK"))
-      )
-    }
   }
 }

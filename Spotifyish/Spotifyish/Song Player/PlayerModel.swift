@@ -33,13 +33,11 @@ import Combine
 import MusicKit
 import SwiftUI
 
+@MainActor
 class AudioPlayerViewModel: ObservableObject {
   static let shared = AudioPlayerViewModel()
   @Published var fromLibrary: Bool = false
   @Published var song: MusicKit.Song?
-  @Published var songLoading: Bool = false
-  @Published var songError: String?
-  @Published var showSongError: Bool = false
   @Published var isScrubbing: Bool = false
   @Published var isPlaying = false
   @Published var duration = 0.0
@@ -49,7 +47,8 @@ class AudioPlayerViewModel: ObservableObject {
   private var cancellables: Set<AnyCancellable> = []
   private var queueObserver: AnyCancellable?
   private var stateObserver: AnyCancellable?
-  private var originalLibrarySong: MusicKit.Song?
+  private var pendingSong: MusicKit.Song?
+  private var globalScreenManager = GlobalScreenManager.shared
   let audioPlayer = ApplicationMusicPlayer.shared
   
   private func addPeriodicTimeObserver() {
@@ -90,14 +89,18 @@ class AudioPlayerViewModel: ObservableObject {
         .sink { [weak self] _ in
           guard let self = self else { return }
             DispatchQueue.main.asyncAfter(
-              deadline: .now()+0.1,
+              deadline: .now() + 0.25,
               execute: {
                 if case let .song(song) = ApplicationMusicPlayer.shared.queue.currentEntry?.item {
-                  print("SET SONG")
-                  print(song)
+                  
+                  // add this check to prevent first item in queue from briefly showing before selected item loads in
+                  if (self.pendingSong != nil && (self.pendingSong?.title != song.title) && song.artistName != self.pendingSong?.artistName) {
+                    return
+                  }
                   self.song = song
                   self.duration = song.duration ?? 0.0
                   self.currentTime = 0.0
+                  self.pendingSong = nil
                 }
               }
             )
@@ -119,16 +122,17 @@ class AudioPlayerViewModel: ObservableObject {
     fromLibrary: Bool = false,
     playlist: [MusicKit.Song]
   ) async {
+    self.pendingSong=song
     loadNewQueue(playlist: playlist, songIndex: songIndex)
     do {
       self.fromLibrary = fromLibrary
-      self.originalLibrarySong = song
+      self.pendingSong = song
       try await self.audioPlayer.prepareToPlay()
       await self.playOrPause()
     } catch {
-      self.songLoading = false
-      self.songError = error.localizedDescription
-      self.showSongError = true
+      self.pendingSong=nil
+      globalScreenManager.showErrorAlert = true
+      globalScreenManager.errorMsg = error.localizedDescription
     }
   }
 
@@ -144,9 +148,8 @@ class AudioPlayerViewModel: ObservableObject {
     do {
       try await self.audioPlayer.skipToNextEntry()
     } catch {
-      self.showSongError = true
-      self.songError = error.localizedDescription
-      print("error playing  \(error)")
+      globalScreenManager.showErrorAlert = true
+      globalScreenManager.errorMsg = error.localizedDescription
     }
   }
 
@@ -157,9 +160,8 @@ class AudioPlayerViewModel: ObservableObject {
     do {
       try await audioPlayer.skipToPreviousEntry()
     } catch {
-      self.showSongError = true
-      self.songError = error.localizedDescription
-      print("error playing  \(error)")
+      globalScreenManager.showErrorAlert = true
+      globalScreenManager.errorMsg = error.localizedDescription
     }
   }
 
@@ -181,9 +183,8 @@ class AudioPlayerViewModel: ObservableObject {
         self.isPlaying = true
         addPeriodicTimeObserver()
       } catch {
-        self.showSongError = true
-        self.songError = error.localizedDescription
-        print("error playing  \(error)")
+        globalScreenManager.showErrorAlert = true
+        globalScreenManager.errorMsg = error.localizedDescription
       }
     }
   }

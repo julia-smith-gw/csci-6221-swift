@@ -52,7 +52,6 @@ struct PlayerView: View {
           action: audioPlayerViewModel.playOrPause
         ).labelStyle(.iconOnly)
           .imageScale(.large)
-          .disabled(audioPlayerViewModel.songLoading)
 
         AsyncButton(
           systemImageName: "forward.fill",
@@ -106,13 +105,5 @@ struct PlayerView: View {
 
       }.padding()
       Spacer()
-    }.frame(height: UIScreen.main.bounds.height)
-      .alert(isPresented: $audioPlayerViewModel.showSongError) {
-        Alert(
-          title: Text("Error"),
-          message: Text(audioPlayerViewModel.songError ?? "Unknown error"),
-          dismissButton: .default(Text("OK"))
-        )
-      }
-  }
+    }.frame(height: UIScreen.main.bounds.height)  }
 }
