@@ -1,29 +1,14 @@
 import MusicKit
-//https://medium.com/p/4af42f4503db
-//  Created by Julia  Smith on 3/25/25.
-//
 import SwiftUI
 
-//
-//  SongCardList.swift
-//  Spotifyish
+//https://medium.com/p/4af42f4503db
 // https://stackoverflow.com/questions/66494887/swiftui-list-add-empty-space-at-the-bottom
-
-struct SongSelection: Hashable {
-  var song: MusicKit.Song
-  var index: Int
-}
-
-class SelectionData: ObservableObject {
-  @Published var selection: SongSelection? = nil
-}
 
 struct SongList: View {
   var songs: [MusicKit.Song]
   @State private var selectedSong: MusicKit.Song?
   @State private var selectedSongIndex: Int?
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
-  @StateObject var selectionData: SelectionData = SelectionData()
   var fromLibrary: Bool = false
   var body: some View {
     List {

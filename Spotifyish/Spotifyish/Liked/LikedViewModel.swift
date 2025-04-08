@@ -12,6 +12,7 @@ import SwiftUI
 
 //https://exploringswift.com/blog/Implementing-Core-Data-in-SwiftUI-using-MVVM-architecture
 //https://bugfender.com/blog/ios-core-data/
+
 @MainActor
 class LikedViewModel: ObservableObject {
   private let viewContext = PersistenceController.shared.viewContext

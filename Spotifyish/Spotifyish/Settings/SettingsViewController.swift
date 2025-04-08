@@ -14,16 +14,19 @@ struct SettingsViewController: View {
     if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
     {
       scene.windows.first?.rootViewController = UIHostingController(
-        rootView: WelcomeViewControllerWrapper())
+        rootView: WelcomeViewControllerWrapper()
+      )
       scene.windows.first?.makeKeyAndVisible()
     }
   }
-  
-  var body: some View{
-    Button("Log Out") {
+
+  var body: some View {
+    VStack {
+      Button("Log Out") {
         logout()
-    }
-    .foregroundColor(.red)
-    .padding()
+      }
+      .foregroundColor(.red)
+      .padding()
+    }.navigationTitle("Settings")
   }
 }

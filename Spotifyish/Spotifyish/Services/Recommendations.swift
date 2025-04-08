@@ -47,10 +47,6 @@ func fetchRecommendationPlaylistSongs(id: MusicItemID) async throws -> [Song] {
       MusicItemCollection<Song>.self,
       from: fullPlaylistResponse.data
     )
-    let decodedPlaylist = try JSONDecoder().decode(
-      MusicItemCollection<Playlist>.self,
-      from: fullPlaylistResponse.data
-    )
     return Array(decodedSongs)
   } catch {
     throw error

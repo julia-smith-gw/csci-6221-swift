@@ -6,9 +6,9 @@
 //
 
 import Algorithms
+import MusadoraKit
 import MusicKit
 import SwiftUI
-import MusadoraKit
 
 @MainActor
 class BrowseViewModel: ObservableObject {
@@ -17,30 +17,32 @@ class BrowseViewModel: ObservableObject {
   @Published var allSongs: [MusicKit.Song] = []
   @Published var searchTerm: String = ""
   @Published var loading: Bool = false
-  @Published var hasNextBatch: Bool = false
   @Published var searchActive: Bool = false
   @Published var genreCharts: [GenreChart] = []
   @Published var searchSongs: [MusicKit.Song] = []
   @Published var loaded: Bool = false
 
-  init(){
-    Task {await fetchGenres() }
+  init() {
+    Task { await fetchGenres() }
   }
-  
-  func fetchCatalogSearchResults() async{
-    if (self.searchTerm == "") {
+
+  func fetchCatalogSearchResults() async {
+    if self.searchTerm == "" {
       return
     }
+
     self.loading = true
     self.loaded = false
     self.showError = false
-    
+
     defer {
       self.loading = false
     }
-    
-    do{
-      let result: MusicCatalogSearchResponse = try await searchCatalog(searchTerm: searchTerm)
+
+    do {
+      let result: MusicCatalogSearchResponse = try await searchCatalog(
+        searchTerm: searchTerm
+      )
       self.loaded = true
       self.searchSongs = Array(result.songs)
     } catch AppleMusicError.networkError(let reason) {
@@ -57,17 +59,17 @@ class BrowseViewModel: ObservableObject {
       self.loaded = false
     }
   }
-  
+
   func fetchGenres() async {
     self.loading = true
     self.loaded = false
     self.showError = false
-    
+
     defer {
       self.loading = false
     }
-    
-    do{
+
+    do {
       let result: [GenreChart] = try await fetchGenreCharts()
       self.loaded = true
       self.genreCharts = result
@@ -85,5 +87,5 @@ class BrowseViewModel: ObservableObject {
       self.loaded = false
     }
   }
-  
+
 }

@@ -23,14 +23,23 @@ struct SongCard: View {
           LikeButton(song: self.song)
         }
         HStack {
-          AsyncImage(url: song.artwork?.url(width: 90, height: 90)) { result in
-              result.image?
-                  .resizable()
-                  .scaledToFill()
-              }
-              .frame(width: 90, height: 90)
+          if (song.artwork != nil) {
+            AsyncImage(url: song.artwork?.url(width: 90, height: 90)) { result in
+                result.image?
+                    .resizable()
+                    .scaledToFill()
+                }
+                .frame(width: 90, height: 90)
+                .foregroundStyle(.secondary)
+                .padding(.leading, 10)
+            
+          } else {
+            Rectangle()
+              .fill(Color.secondary)
               .foregroundStyle(.secondary)
+              .frame(width: 90, height: 90)
               .padding(.leading, 10)
+          }
 
           Spacer()
           VStack( alignment: .trailing, spacing: 1) {

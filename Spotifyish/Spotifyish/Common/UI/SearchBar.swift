@@ -7,9 +7,9 @@
 
 //https://stackoverflow.com/questions/76832159/searchable-make-the-search-box-stick-to-the-top-without-moving-when-focused
 //https://developer.apple.com/forums/thread/738726
-
 //https://www.hackingwithswift.com/forums/100-days-of-swift/adding-a-clear-button-to-a-textfield/12079
 //https://stackoverflow.com/questions/71744888/view-with-rounded-corners-and-border
+
 import SwiftUI
 
 struct TextFieldClearButton: ViewModifier {

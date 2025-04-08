@@ -1,4 +1,4 @@
-//Source:https://www.kodeco.com/books/swiftui-cookbook/v1//.0/chapters/1-create-an-audio-player-in-swiftui//
+//https://www.kodeco.com/books/swiftui-cookbook/v1//.0/chapters/1-create-an-audio-player-in-swiftui//
 
 //https://developer.apple.com/documentation/swift/managing-a-shared-resource-using-a-singleton
 
@@ -8,7 +8,7 @@
 
 //https://stackoverflow.com/questions/15094948/avplayer-fast-backward-forward-stream
 
-// https://developer.apple.com/forums/thread/687487
+//https://developer.apple.com/forums/thread/687487
 
 //https://developer.apple.com/documentation/foundation/timer
 
@@ -33,7 +33,6 @@ import Combine
 import MusicKit
 import SwiftUI
 
-@MainActor
 class AudioPlayerViewModel: ObservableObject {
   static let shared = AudioPlayerViewModel()
   @Published var fromLibrary: Bool = false
@@ -42,12 +41,11 @@ class AudioPlayerViewModel: ObservableObject {
   @Published var isPlaying = false
   @Published var duration = 0.0
   @Published var currentTime: Double = ApplicationMusicPlayer.shared.playbackTime
+  @Published var pendingSong: MusicKit.Song?
   @ObservedObject private var playerState = ApplicationMusicPlayer.shared.state
   private var timer: Timer?
-  private var cancellables: Set<AnyCancellable> = []
   private var queueObserver: AnyCancellable?
   private var stateObserver: AnyCancellable?
-  private var pendingSong: MusicKit.Song?
   private var globalScreenManager = GlobalScreenManager.shared
   let audioPlayer = ApplicationMusicPlayer.shared
   
@@ -66,23 +64,6 @@ class AudioPlayerViewModel: ObservableObject {
   }
 
   init() {
-//    if (stateObserver == nil) {
-//      stateObserver = ApplicationMusicPlayer.shared.state.objectWillChange
-//       .sink { [weak self] _ in
-//         guard let self = self else { return }
-//         
-//         let playbackStatus = ApplicationMusicPlayer.shared.state.playbackStatus
-//         DispatchQueue.main.async(
-//             execute: {
-//             self.isPlaying = playbackStatus == .playing
-//             if (self.isPlaying){
-//               self.addPeriodicTimeObserver()
-//             } else {
-//               self.removePeriodicTimeObserver()
-//             }
-//           })
-//       }
-//    }
    
     if (queueObserver == nil) {
       queueObserver = ApplicationMusicPlayer.shared.queue.objectWillChange
@@ -123,6 +104,7 @@ class AudioPlayerViewModel: ObservableObject {
     playlist: [MusicKit.Song]
   ) async {
     self.pendingSong=song
+    self.song = nil
     loadNewQueue(playlist: playlist, songIndex: songIndex)
     do {
       self.fromLibrary = fromLibrary
@@ -145,6 +127,9 @@ class AudioPlayerViewModel: ObservableObject {
   }
 
   func skipForwards() async {
+    if self.audioPlayer.queue.entries.count == 1 {
+      audioPlayer.restartCurrentEntry()
+    }
     do {
       try await self.audioPlayer.skipToNextEntry()
     } catch {
@@ -155,7 +140,7 @@ class AudioPlayerViewModel: ObservableObject {
 
   func skipBackwards() async {
     if self.audioPlayer.queue.entries.count == 1 {
-      return
+      audioPlayer.restartCurrentEntry()
     }
     do {
       try await audioPlayer.skipToPreviousEntry()

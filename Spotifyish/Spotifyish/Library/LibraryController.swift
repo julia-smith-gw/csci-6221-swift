@@ -1,35 +1,24 @@
 import MusicKit
-//https://stackoverflow.com/questions/76832159/searchable-make-the-search-box-stick-to-the-top-without-moving-when-focused
 import SwiftUI
 
+//https://stackoverflow.com/questions/76832159/searchable-make-the-search-box-stick-to-the-top-without-moving-when-focused
 //https://medium.engineering/how-to-do-pagination-in-swiftui-04511be7fbd1
-
 //https://developer.apple.com/documentation/swiftui/adding-a-search-interface-to-your-app
 
 struct LibraryController: View {
   @ObservedObject var globalScreenManager = GlobalScreenManager.shared
   @ObservedObject var libraryViewModel = LibraryViewModel.shared
-  private func makeMessageView(_ message: String) -> some View {
-    Text(message)
-  }
-
-  private var loadingView: some View {
-    VStack {
-      ProgressView()
-      Text("Loading library...")
-    }
-  }
-
+  
   var body: some View {
     VStack {
       if libraryViewModel.loading
         && libraryViewModel.currentlyVisibleSongs.isEmpty
       {
-        loadingView
+        LoadingView(loadingText: "Loading library...")
       } else if libraryViewModel.loaded
         && libraryViewModel.currentlyVisibleSongs.isEmpty
       {
-        makeMessageView("No songs found")
+        Text("No songs found")
       } else {
         contentView
       }
@@ -51,7 +40,7 @@ struct LibraryController: View {
                 },
                 searchActive: $libraryViewModel.searchActive
               )
-              .offset(y: 40)
+              .offset(y: 30)
             }
             .frame(maxHeight: 120)
             .offset(y: -60)

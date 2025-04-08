@@ -16,39 +16,38 @@ class RecommendationViewModel: ObservableObject {
   @Published var songs: [MusicKit.Song] = []
   @Published var playlists: [MusicKit.Playlist] = []
   @Published var loading: Bool = false
-  @Published var searchActive: Bool = false
   @Published var loaded: Bool = false
+  @Published var songsLoading: Bool = false
+  @Published var songsLoaded: Bool = false
 
   init() {
     Task { await getRecommendations() }
   }
   
   func getRecommendationPlaylist(id: MusicItemID) async {
-    self.loading = true
-    self.loaded = false
+    self.songsLoading = true
     self.showError = false
+    self.songsLoaded = false
+    
     defer {
-      self.loading = false
+      self.songsLoading = false
     }
     do {
       let result = try await fetchRecommendationPlaylistSongs(id: id)
       self.songs = result
-      self.loaded = true
+      self.songsLoaded = false
     } catch AppleMusicError.networkError(let reason) {
-      print("rec error \(reason)")
       self.showError = true
       self.errorMessage = reason
-      self.loaded = false
+      self.songsLoaded = false
     } catch AppleMusicError.unknown(reason: let reason) {
-      print("rec error \(reason)")
       self.showError = true
       self.errorMessage = reason
-      self.loaded = false
+      self.songsLoaded = false
     } catch {
-      print("rec error \(error.localizedDescription)")
       self.showError = true
       self.errorMessage = error.localizedDescription
-      self.loaded = false
+      self.songsLoaded = false
     }
   }
 
@@ -67,23 +66,18 @@ class RecommendationViewModel: ObservableObject {
       for rec in result.recommendations {
           recommendedPlaylists+=rec.playlists
       }
-      
-      print("RECOMMENDED PLAYLIST")
-      print(recommendedPlaylists)
-      self.playlists = recommendedPlaylists
+    
+      self.playlists = recommendedPlaylists.uniqued(on: \.id)
       self.loaded = true
     } catch AppleMusicError.networkError(let reason) {
-      print("rec error \(reason)")
       self.showError = true
       self.errorMessage = reason
       self.loaded = false
     } catch AppleMusicError.unknown(reason: let reason) {
-      print("rec error \(reason)")
       self.showError = true
       self.errorMessage = reason
       self.loaded = false
     } catch {
-      print("rec error \(error.localizedDescription)")
       self.showError = true
       self.errorMessage = error.localizedDescription
       self.loaded = false

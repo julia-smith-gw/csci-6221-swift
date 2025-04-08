@@ -3,16 +3,17 @@ import Foundation
 import MusicKit
 import SwiftUI
 
-//https://stackoverflow.com/questions/73488386/swiftui-animation-from-screen-bottom-not-working-properly
 //https://www.youtube.com/watch?v=vqPK8qFsoBg&t=145s
 //https://www.reddit.com/r/SwiftUI/comments/s5npb6/how_to_increasedecrease_the_size_of_a_view/
 //https://developer.apple.com/documentation/swiftui/view/navigationdestination(for:destination:)
 //https://stackoverflow.com/questions/65757784/how-to-best-pass-data-for-form-editing-in-swuiftui-while-having-that-data-avail
 //https://www.swiftbysundell.com/articles/swiftui-state-management-guide/
 //https://www.reddit.com/r/swift/comments/gb8742/reasoning_behind_observableobjects/
-//https://stackoverflow.com/questions/77829110/how-define-a-size-for-image-with-asyncimage
-//https://www.swiftyplace.com/blog/swiftui-sheets-modals-bottom-sheets-fullscreen-presentation-in-ios
-//https://stackoverflow.com/questions/65784294/how-to-detect-if-keyboard-is-present-in-swiftui
+//https://stackoverflow.com/questions/61363361/environmentobject-vs-singleton-in-swiftui
+//https://www.hackingwithswift.com/quick-start/swiftui/how-to-present-a-full-screen-modal-view-using-fullscreencover
+//https://www.reddit.com/r/SwiftUI/comments/tb5tfd/is_there_anything_like_onload_is_swiftui/
+//https://swiftwithmajid.com/2021/11/03/managing-safe-area-in-swiftui/
+
 class GlobalScreenManager: ObservableObject {
   var authorized: Bool = false
   var showFullscreenPlayer: Bool = false
@@ -83,40 +84,47 @@ struct ContentView: View {
           }
           .environmentObject(browseViewModel)
 
-          SettingsViewController()
+          NavigationStack {
+            SettingsViewController()
+          }
             .tabItem {
               Label("Settings", systemImage: "gearshape.fill")
             }
-        }.sheet(isPresented: $globalScreenManager.showFullscreenPlayer) {
-          print("Sheet dismissed!")
-        } content: {
+        }.fullScreenCover(isPresented: $globalScreenManager.showFullscreenPlayer, content: {
           PlayerView()
-            .transition(.move(edge: .bottom))
-        }
+        })
         .safeAreaInset(
           edge: .bottom,
           spacing: 0,
           content: {
-            if audioPlayerViewModel.song != nil
+            if (audioPlayerViewModel.pendingSong != nil
+              || audioPlayerViewModel.song != nil)
               && !globalScreenManager.showFullscreenPlayer
             {
               ZStack {
                 Rectangle()
                   .fill(.ultraThickMaterial)
                   .overlay {
-                    MusicInfo()
-                  }
-              }
-              .gesture(
-                TapGesture(count: 2)
-                  .onEnded {
-                    withAnimation {
-                      globalScreenManager.showFullscreenPlayer = true
+                    if audioPlayerViewModel.song != nil {
+                      MusicInfo()
+                    } else {
+                      Image(systemName: "music.quarternote.3")
+                        .symbolEffect(
+                          .variableColor,
+                          isActive: true
+                        )
                     }
                   }
-              )
-              .frame(maxHeight: 80)
-              .offset(y: -49)
+              }.gesture(
+                  TapGesture(count: 2)
+                    .onEnded {
+                      withAnimation {
+                        globalScreenManager.showFullscreenPlayer = true
+                      }
+                    }
+                )
+                .frame(maxHeight: 80)
+                .offset(y: -49)
             }
           }
         )
@@ -145,7 +153,6 @@ struct ContentView: View {
   }
 }
 
-//MINI PLAYER JULIA WORK IN PROGRESS
 // source https://www.youtube.com/watch?v=_KohThDWl5Y
 struct MusicInfo: View {
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
@@ -153,15 +160,21 @@ struct MusicInfo: View {
   var body: some View {
     ZStack {
       HStack(spacing: 0) {
-
-        AsyncImage(
-          url: audioPlayerViewModel.song?.artwork?.url(width: 50, height: 50)
-        ) { result in
-          result.image?
-            .resizable()
-            .scaledToFill()
+        if (audioPlayerViewModel.song?.artwork?.url != nil) {
+          AsyncImage(
+            url: audioPlayerViewModel.song?.artwork?.url(width: 50, height: 50)
+          ) { result in
+            result.image?
+              .resizable()
+              .scaledToFill()
+          }
+          .frame(width: 80, height: 80)
+        } else {
+          Rectangle()
+            .fill(Color.secondary)
+            .foregroundStyle(.secondary)
+            .frame(width: 80, height: 80)
         }
-        .frame(width: 80, height: 80)
 
         Spacer()
         HStack {
@@ -193,14 +206,14 @@ struct MusicInfo: View {
         }.frame(maxWidth: UIScreen.main.bounds.width - 30)
       }.padding(10)
     }
-
   }
 }
 
 #Preview {
 
-  ContentView().environment(
-    \.managedObjectContext,
-    PersistenceController.preview.container.viewContext
-  )
+  ContentView()
+    .environment(
+      \.managedObjectContext,
+      PersistenceController.preview.container.viewContext
+    )
 }

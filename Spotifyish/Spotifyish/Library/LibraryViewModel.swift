@@ -19,12 +19,13 @@ class LibraryViewModel: ObservableObject {
   @Published var loading: Bool = false
   @Published var searchActive: Bool = false
   @Published var loaded: Bool = false
+  @Published var storedFocusedIndex: Int = 0
   static let shared = LibraryViewModel()
 
-  init(){
-    Task {await fetchInitialBatch() }
+  init() {
+    Task { await fetchInitialBatch() }
   }
-  
+
   func fetchInitialBatch() async {
     self.loading = true
     self.loaded = false
@@ -36,17 +37,12 @@ class LibraryViewModel: ObservableObject {
 
     do {
       let result = try await fetchEntireLibrary()
-      
-      DispatchQueue.main.async {
-        self.allSongs = Array(result).uniqued(on: \.id).filter {
-          $0.playParameters != nil
-        }
+      self.allSongs = Array(result).uniqued(on: \.id).filter {
+        $0.playParameters != nil
       }
-      
-      if (!self.searchActive) {
-        DispatchQueue.main.async {
-          self.currentlyVisibleSongs=self.allSongs
-        }
+
+      if !self.searchActive {
+        self.currentlyVisibleSongs = self.allSongs
       }
       self.loaded = true
     } catch AppleMusicError.networkError(let reason) {
@@ -63,46 +59,42 @@ class LibraryViewModel: ObservableObject {
       self.loaded = false
     }
   }
-   
-  
+
   func getSongIsInLibrary(song: Song) -> Bool {
     if allSongs.contains(where: {
       $0.title == song.title && $0.artistName == song.artistName
     }) {
       return true
-      // found
     } else {
       return false
     }
   }
-  
+
   func addSongToLibrary(song: Song) async {
     do {
       try await postSongToLibrary(song: song)
       await fetchInitialBatch()
-      let afterFilter = self.allSongs.filter {
-        song.title == $0.title && song.artistName == $0.artistName
-      }
     } catch AppleMusicError.networkError(let reason) {
-      print("failed song to library \(reason)")
       self.errorMessage = reason
       self.showError = true
     } catch AppleMusicError.unknown(reason: let reason) {
-      print("failed song to library \(reason)")
       self.errorMessage = reason
       self.showError = true
     } catch {
-      print("failed song to library \(error.localizedDescription)")
       self.errorMessage = error.localizedDescription
       self.showError = true
     }
-
   }
 
   func searchLibrary() async {
     self.loading = true
     self.loaded = false
     self.showError = false
+
+    defer {
+      self.loading = false
+    }
+
     do {
       var result: MusicLibrarySearchResponse
       if self.searchTerm == "" {
@@ -110,29 +102,23 @@ class LibraryViewModel: ObservableObject {
         self.searchActive = false
       } else {
         result = try await fetchLibrarySearchResult(searchTerm: self.searchTerm)
-        self.currentlyVisibleSongs = Array(result.songs).uniqued(on: \.id).filter {
-          $0.playParameters != nil
-        }
+        self.currentlyVisibleSongs = Array(result.songs).uniqued(on: \.id)
+          .filter {
+            $0.playParameters != nil
+          }
       }
-      self.loading = false
       self.loaded = true
     } catch AppleMusicError.networkError(let reason) {
-      print("bad")
-      print(reason)
       self.errorMessage = reason
       self.loaded = false
       self.loading = false
       self.showError = true
     } catch AppleMusicError.unknown(reason: let reason) {
-      print("bad")
-      print(reason)
       self.errorMessage = reason
       self.loaded = false
       self.loading = false
       self.showError = true
     } catch {
-      print("bad")
-      print(error.localizedDescription)
       self.errorMessage = error.localizedDescription
       self.loaded = false
       self.loading = false
