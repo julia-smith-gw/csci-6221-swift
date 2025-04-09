@@ -69,8 +69,10 @@ class AudioPlayerViewModel: ObservableObject {
     if (stateObserver == nil){
       stateObserver = ApplicationMusicPlayer.shared.state.objectWillChange.sink { [weak self] _ in
         guard let self = self else { return }
-        if (self.audioPlayer.state.playbackStatus == .playing && (self.pendingSong != nil && (self.pendingSong?.title == song?.title) && song?.artistName != self.pendingSong?.artistName)){
-          self.pendingSong = nil
+        if (self.audioPlayer.state.playbackStatus == .playing && self.song != nil && self.pendingSong != nil){
+          DispatchQueue.main.async {
+            self.pendingSong = nil
+          }
         }
       }
     }
@@ -79,8 +81,7 @@ class AudioPlayerViewModel: ObservableObject {
       queueObserver = ApplicationMusicPlayer.shared.queue.objectWillChange
         .sink { [weak self] _ in
           guard let self = self else { return }
-            DispatchQueue.main.asyncAfter(
-              deadline: .now() + 0.5,
+            DispatchQueue.main.async(
               execute: {
                 if case let .song(song) = ApplicationMusicPlayer.shared.queue.currentEntry?.item {
                   

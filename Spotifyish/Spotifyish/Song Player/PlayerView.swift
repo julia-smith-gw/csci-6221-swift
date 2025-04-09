@@ -32,7 +32,9 @@ struct SwipeToDismiss: ViewModifier {
           .onEnded { drag in
             withAnimation {
               if drag.translation.height > 100 {
-                isPresented = false
+                DispatchQueue.main.async {
+                  isPresented = false
+                }
                 opacityAmount = 0
               } else {
                 verticalDragAmount = 0

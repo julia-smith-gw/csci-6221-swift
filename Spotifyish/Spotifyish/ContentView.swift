@@ -107,13 +107,8 @@ struct ContentView: View {
                 Rectangle()
                   .fill(.ultraThickMaterial)
                   .contentShape(Rectangle())
-                  .onTapGesture {
-                      withAnimation {
-                        globalScreenManager.showFullscreenPlayer = true
-                      }
-                    }
                   .overlay {
-                    if audioPlayerViewModel.song != nil {
+                    if self.audioPlayerViewModel.pendingSong == nil {
                       MusicInfo()
                     } else {
                       Image(systemName: "music.quarternote.3")
@@ -157,6 +152,7 @@ struct ContentView: View {
 // source https://www.youtube.com/watch?v=_KohThDWl5Y
 struct MusicInfo: View {
   @ObservedObject var audioPlayerViewModel = AudioPlayerViewModel.shared
+  @ObservedObject var globalScreenManager=GlobalScreenManager.shared
 
   var body: some View {
     ZStack {
@@ -179,10 +175,22 @@ struct MusicInfo: View {
 
         Spacer()
         HStack {
-          Text(audioPlayerViewModel.song?.title ?? "")
-            .fontWeight(.semibold)
-            .lineLimit(1)
-            .padding(.leading, 15)
+          Rectangle()
+            .fill(.ultraThickMaterial)
+            .contentShape(Rectangle())
+            .overlay {
+              Text(audioPlayerViewModel.song?.title ?? "")
+                .fontWeight(.semibold)
+                .lineLimit(1)
+                .padding(.leading, 15)
+
+            }.onTapGesture {
+              withAnimation {
+                DispatchQueue.main.async {
+                  globalScreenManager.showFullscreenPlayer = true
+                }
+              }
+            }
 
           HStack(spacing: 10) {
             AsyncButton(
