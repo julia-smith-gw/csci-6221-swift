@@ -13,6 +13,7 @@ import SwiftUI
 //https://www.hackingwithswift.com/quick-start/swiftui/how-to-present-a-full-screen-modal-view-using-fullscreencover
 //https://www.reddit.com/r/SwiftUI/comments/tb5tfd/is_there_anything_like_onload_is_swiftui/
 //https://swiftwithmajid.com/2021/11/03/managing-safe-area-in-swiftui/
+//https://stackoverflow.com/questions/63154815/why-doesnt-swiftui-ontapgesture-always-work
 
 class GlobalScreenManager: ObservableObject {
   var authorized: Bool = false
@@ -43,6 +44,7 @@ struct ContentView: View {
     RecommendationViewModel()
 
   var body: some View {
+
     ZStack {
       if !globalScreenManager.authorized {
         ProgressView()
@@ -74,7 +76,7 @@ struct ContentView: View {
             )
           }
           .tabItem {
-            Label("Recommended", systemImage: "house.fill")
+            Label("Recommended", systemImage: "circle.grid.2x2.fill")
           }
 
           NavigationStack {
@@ -104,6 +106,12 @@ struct ContentView: View {
               ZStack {
                 Rectangle()
                   .fill(.ultraThickMaterial)
+                  .contentShape(Rectangle())
+                  .onTapGesture {
+                      withAnimation {
+                        globalScreenManager.showFullscreenPlayer = true
+                      }
+                    }
                   .overlay {
                     if audioPlayerViewModel.song != nil {
                       MusicInfo()
@@ -115,14 +123,7 @@ struct ContentView: View {
                         )
                     }
                   }
-              }.gesture(
-                  TapGesture(count: 2)
-                    .onEnded {
-                      withAnimation {
-                        globalScreenManager.showFullscreenPlayer = true
-                      }
-                    }
-                )
+              }
                 .frame(maxHeight: 80)
                 .offset(y: -49)
             }
